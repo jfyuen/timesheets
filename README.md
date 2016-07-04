@@ -5,6 +5,8 @@ Hopefully to be used weekly.
 
 ## Run
 
+Before anything, install dependencies with `npm install`.
+
 ### Production
 
 ```bash
