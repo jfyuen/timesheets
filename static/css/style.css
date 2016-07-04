@@ -1,0 +1,41 @@
+.button, .date {
+    width: 100px;
+}
+
+.project-select, .activity-select, .allocation-select {
+    display: table-row;
+}
+
+.task-select {
+    display: table-row;
+}
+
+.select-label, .select-form {
+    display: table-cell;
+}
+
+.task-table {
+    display: table;
+    float: left;
+}
+
+textarea {
+    width: 200px;
+}
+
+.comment {
+    display: table-row;
+    /*clear: left;*/
+}
+
+.comment-label, #comment {
+    display: table-cell;
+}
+
+.jnt-picker {
+    display: table-row;
+}
+
+.user {
+    display: table-row;
+}
