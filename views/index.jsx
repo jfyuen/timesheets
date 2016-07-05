@@ -23,7 +23,7 @@ var SelectList = React.createClass({
         var options = [];
         this.props.values.forEach(function (val) {
             options.push(<Option val={val} key={val.id}/>);
-        });
+        }.bind(this));
 
         return (
             <div className={this.props.cssclass}>
@@ -49,15 +49,12 @@ var JNTDatePicker = React.createClass({
     },
 
     previousDay: function () {
-        console.log('previous day');
+        this.props.addDay(-1);
     },
 
     nextDay: function () {
-        console.log('next day');
+        this.props.addDay(1);
     },
-
-
-
     handleChange: function () {
         console.log('change');
     },
@@ -77,15 +74,20 @@ var Comment = React.createClass({
 });
 
 var Timetable = React.createClass({
+    getInitialState: function () {
+        return {
+            today: moment(),
+        };
+    },
     render: function () {
         var dailyTasks = [{ project: PROJECTS[0], activity: ACTIVITIES[0], allocation: ALLOCATION[0] }];
         var weeklyTasks = TASKS;
-        var today = moment().format('DD/MM/YYYY');
+        var today = this.state.today.format('DD/MM/YYYY');
         return (
             <div>
                 <form className='task-table'>
                     <SelectList values={USERS} label='Trigramme' cssclass='user'/>
-                    <JNTDatePicker jnt={JNT} date={today}/>
+                    <JNTDatePicker jnt={JNT} date={today} addDay={this.addDay}/>
                     <SelectList values={PROJECTS} label='Projet' cssclass='project-select' id='project'/>
                     <SelectList values={ACTIVITIES} label='Activité' cssclass='activity-select' id='activity'/>
                     <SelectList values={ALLOCATION} label='Temps' cssclass='allocation-select' id='allocation'/>
@@ -101,20 +103,12 @@ var Timetable = React.createClass({
             </div>
         );
     },
-
+    addDay: function (v) {
+        var today = this.state.today.add(v, 'day');
+        this.setState({ today: today });
+    },
     addTime: function () {
         console.log('add time');
-    }
-});
-
-var TaskTable = React.createClass({
-    render: function () {
-        return (
-            <div>
-                <UserList users={USERS}/>
-                <JNTDatePicker jnt={JNT} />
-            </div>
-        );
     }
 });
 
@@ -143,7 +137,7 @@ var DailySummary = React.createClass({
         this.props.tasks.forEach(function (task) {
             rows.push(<DailyTask project={task.project} key={i} activity={task.activity} allocation={task.allocation}/>);
             i++;
-        })
+        }.bind(this));
         return (
             <table>
                 <caption>Journée en cours</caption>
@@ -173,7 +167,7 @@ var WeeklySummary = React.createClass({
             days[i] = {};
             if (key in this.props.tasks) {
                 var dailyProject = this.props.tasks[key];
-                
+
                 for (var j = 0; j < dailyProject.length; j++) {
                     days[i][dailyProject[j].project.name] = dailyProject[j].allocation;
                     projects.add(dailyProject[j].project.name);
@@ -198,12 +192,7 @@ var WeeklySummary = React.createClass({
                 }
             }
             rows.push(<tr key={p}><td></td><td>{p}</td><td>{projectdays['0'].name}</td><td>{projectdays['1'].name}</td><td>{projectdays['2'].name}</td><td>{projectdays['3'].name}</td><td>{projectdays['4'].name}</td><td>{projectTotal}</td></tr>)
-        });
-        // var i = 0;
-        // this.props.tasks.forEach(function(task) {
-        //     rows.push(<DailyTask project={task.project} key={i} activity={task.activity} allocation={task.allocation}/>);
-        //     i++;
-        // })
+        }.bind(this));
         return (
             <table>
                 <caption>Semaine en cours</caption>
