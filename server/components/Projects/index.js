@@ -8,10 +8,10 @@ router.route('/')
     .post()
     .get(function (req, res) {
         res.status(200).json([
-            {id: 0, name: 'Project A'},
-            {id: 1, name: 'Project B'},
-            {id: 2, name: 'Project C'}
-        ])
+            {id: 0, name: 'Project 1'},
+            {id: 1, name: 'Project 2'},
+            {id: 2, name: 'Project 3'}
+        ]);
     });
 
 router.route('/:id')
@@ -19,7 +19,7 @@ router.route('/:id')
     .delete()
     .get();
 
-module.exports = router
+module.exports = router;
 
 
 
