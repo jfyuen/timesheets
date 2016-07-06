@@ -5,7 +5,10 @@ require('babel-register')
 var React = require('react');
 var ReactDOM = require('react-dom');
 var moment = require('moment');
+moment.locale('en-gb');
+var DatePicker = require('react-datepicker');
 require('../static/css/style.css');
+require('react-datepicker/dist/react-datepicker.css');
 
 var Option = React.createClass({
     render: function () {
@@ -39,23 +42,42 @@ var JNTDatePicker = React.createClass({
     render: function () {
         return (
             <div className='jnt-picker'>
-                <label htmlFor='date' style={{ display: 'table-cell' }}>Date</label>
-                <input value={this.props.date} onChange={this.handleChange} className='date' id='date' style={{ display: 'table-cell' }}/>
-                <input type='button' onClick={this.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
-                <input type='button' onClick={this.nextDay} value='Jour suivant'  className="button" style={{ display: 'table-cell' }}/>
+                <label htmlFor='date' >Date</label>
+                <div style={{ display: 'table-cell' }} >
+                    <DatePicker selected={this.props.date} onChange={this.handleChange} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='en-gb'  excludeDates={this.props.jnt}/>
+
+                    <input type='button' onClick={this.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
+                    <input type='button' onClick={this.nextDay} value='Jour suivant'  className="button" style={{ display: 'table-cell' }}/>
+                </div>
             </div>
         );
     },
 
-    previousDay: function () {
-        this.props.addDay(-1);
+    isWorkingDay: function (d) {
+        for (var i = 0; i < this.props.jnt.length; i++) {
+            if (this.props.jnt[i].format('YYYY-MM-DD') == d.format('YYYY-MM-DD')) {
+                return false;
+            }
+        }
+        return this.isWeekday(d);
     },
 
-    nextDay: function () {
-        this.props.addDay(1);
+    previousDay: function () {
+        var d = this.props.date.clone().add(-1, 'day');
+        while (!this.isWorkingDay(d)) {
+            d.add(-1, 'day');
+        }
+        this.props.changeDate(d);
     },
-    handleChange: function () {
-        console.log('change');
+    nextDay: function () {
+        var d = this.props.date.clone().add(1, 'day');
+        while (!this.isWorkingDay(d)) {
+            d.add(1, 'day');
+        }
+        this.props.changeDate(d);
+    },
+    handleChange: function (d) {
+        this.props.changeDate(d);
     },
 
     isWeekday: function (d) {
@@ -81,12 +103,12 @@ var Timetable = React.createClass({
     render: function () {
         var dailyTasks = [{ project: PROJECTS[0], activity: ACTIVITIES[0], allocation: ALLOCATION[0] }];
         var weeklyTasks = TASKS;
-        var today = this.state.today.format('DD/MM/YYYY');
+        //var today = this.state.today.format('DD/MM/YYYY');
         return (
             <div>
                 <form className='task-table'>
                     <SelectList values={USERS} label='Trigramme' cssclass='user'/>
-                    <JNTDatePicker jnt={JNT} date={today} addDay={this.addDay}/>
+                    <JNTDatePicker jnt={JNT} date={this.state.today} changeDate={this.changeDate}/>
                     <SelectList values={PROJECTS} label='Projet' cssclass='project-select' id='project'/>
                     <SelectList values={ACTIVITIES} label='Activité' cssclass='activity-select' id='activity'/>
                     <SelectList values={ALLOCATION} label='Temps' cssclass='allocation-select' id='allocation'/>
@@ -102,9 +124,9 @@ var Timetable = React.createClass({
             </div>
         );
     },
-    addDay: function (v) {
-        var today = this.state.today.add(v, 'day');
-        this.setState({ today: today });
+
+    changeDate: function (d) {
+        this.setState({ today: d });
     },
     addTime: function () {
         console.log('add time');
