@@ -123,7 +123,7 @@ var Timetable = React.createClass({
             </div>
         );
     },
-    deleteDailyTasks: function(indexes) {
+    deleteDailyTasks: function (indexes) {
         var dailyTasks = [];
         for (var i = 0; i < this.state.dailyTasks.length; i++) {
             if (indexes.indexOf(i) >= 0) {
@@ -131,8 +131,7 @@ var Timetable = React.createClass({
             }
             dailyTasks.push(this.state.dailyTasks[i]);
         }
-        this.setState({dailyTasks: dailyTasks});
-        console.log('deleteDailyTasks');
+        this.setState({ dailyTasks: dailyTasks });
     },
     changeDate: function (d) {
         this.setState({ today: d });
@@ -155,11 +154,15 @@ var DailyTask = React.createClass({
 });
 
 var DailySummary = React.createClass({
-    getInitialState: function () {
+    initCheckboxes: function () {
         var checked = [];
         this.props.tasks.forEach(function (task) {
             checked.push(false);
         }.bind(this));
+        return checked;
+    },
+    getInitialState: function () {
+        var checked = this.initCheckboxes();
         return { checked: checked };
     },
     render: function () {
@@ -189,6 +192,8 @@ var DailySummary = React.createClass({
                 indexes.push(i);
         }
         this.props.deleteTasks(indexes);
+        var checked = this.initCheckboxes();
+        this.setState({ checked: checked });
     },
     handleTaskClick: function (index, checked) {
         var checkedTasks = this.state.checked.slice();
