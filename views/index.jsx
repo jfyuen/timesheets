@@ -98,10 +98,10 @@ var Timetable = React.createClass({
     getInitialState: function () {
         return {
             today: moment(),
+            dailyTasks: [{ project: PROJECTS[0], activity: ACTIVITIES[0], allocation: ALLOCATION[0] }, { project: PROJECTS[1], activity: ACTIVITIES[2], allocation: ALLOCATION[3] }]
         };
     },
     render: function () {
-        var dailyTasks = [{ project: PROJECTS[0], activity: ACTIVITIES[0], allocation: ALLOCATION[0] }];
         var weeklyTasks = TASKS;
         return (
             <div>
@@ -117,11 +117,22 @@ var Timetable = React.createClass({
                     </div>
                 </form>
                 <hr/>
-                <DailySummary tasks={dailyTasks}/>
+                <DailySummary tasks={this.state.dailyTasks} deleteTasks={this.deleteDailyTasks}/>
                 <hr/>
                 <WeeklySummary tasks={weeklyTasks}/>
             </div>
         );
+    },
+    deleteDailyTasks: function(indexes) {
+        var dailyTasks = [];
+        for (var i = 0; i < this.state.dailyTasks.length; i++) {
+            if (indexes.indexOf(i) >= 0) {
+                continue;
+            }
+            dailyTasks.push(this.state.dailyTasks[i]);
+        }
+        this.setState({dailyTasks: dailyTasks});
+        console.log('deleteDailyTasks');
     },
     changeDate: function (d) {
         this.setState({ today: d });
@@ -149,7 +160,7 @@ var DailySummary = React.createClass({
         this.props.tasks.forEach(function (task) {
             checked.push(false);
         }.bind(this));
-        return {checked: checked};
+        return { checked: checked };
     },
     render: function () {
         var rows = [];
@@ -166,18 +177,23 @@ var DailySummary = React.createClass({
                         <th>&nbsp; </th><th>Projet</th><th>Activité</th><th>Temps</th>
                     </tr>
                     {rows}
-                    <tr><td colSpan="4"><input type="button" value="Effacer les tâches" onClick={this.deleteTask}/></td></tr>
+                    <tr><td colSpan="4"><input type="button" value="Effacer les tâches" onClick={this.deleteTasks}/></td></tr>
                 </tbody>
             </table>
         );
     },
-    deleteTask: function () {
-        console.log('delete task');
+    deleteTasks: function () {
+        var indexes = [];
+        for (var i = 0; i < this.state.checked.length; i++) {
+            if (this.state.checked[i])
+                indexes.push(i);
+        }
+        this.props.deleteTasks(indexes);
     },
     handleTaskClick: function (index, checked) {
         var checkedTasks = this.state.checked.slice();
         checkedTasks[index] = checked;
-        this.setState({checked: checkedTasks});
+        this.setState({ checked: checkedTasks });
     }
 });
 
@@ -231,9 +247,6 @@ var WeeklySummary = React.createClass({
             </table>
         );
     },
-    deleteTask: function () {
-        console.log('delete task');
-    }
 });
 
 var USERS = [
