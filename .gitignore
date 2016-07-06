@@ -5,3 +5,4 @@ jspm_packages
 .npm
 timesheets.iml
 .idea
+static/bundle.js
