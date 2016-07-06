@@ -103,7 +103,6 @@ var Timetable = React.createClass({
     render: function () {
         var dailyTasks = [{ project: PROJECTS[0], activity: ACTIVITIES[0], allocation: ALLOCATION[0] }];
         var weeklyTasks = TASKS;
-        //var today = this.state.today.format('DD/MM/YYYY');
         return (
             <div>
                 <form className='task-table'>
@@ -124,7 +123,6 @@ var Timetable = React.createClass({
             </div>
         );
     },
-
     changeDate: function (d) {
         this.setState({ today: d });
     },
@@ -135,28 +133,29 @@ var Timetable = React.createClass({
 
 
 var DailyTask = React.createClass({
-    getInitialState: function () {
-        return {
-            checked: this.props.checked || false
-        };
-    },
     render: function () {
-        var checked = false;
         return (
-            <tr><td><input type="checkbox" checked={this.state.checked}  onClick={this.handleClick}/></td><td>{this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td></tr>
+            <tr><td><input type="checkbox" checked={this.props.checked}  onClick={this.handleClick}/></td><td>{this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td></tr>
         );
     },
     handleClick: function (e) {
-        this.setState({ checked: e.target.checked });
+        this.props.handleTaskClick(this.props.index, !this.props.checked);
     }
 });
 
 var DailySummary = React.createClass({
+    getInitialState: function () {
+        var checked = [];
+        this.props.tasks.forEach(function (task) {
+            checked.push(false);
+        }.bind(this));
+        return {checked: checked};
+    },
     render: function () {
         var rows = [];
         var i = 0;
         this.props.tasks.forEach(function (task) {
-            rows.push(<DailyTask project={task.project} key={i} activity={task.activity} allocation={task.allocation}/>);
+            rows.push(<DailyTask project={task.project} key={i} index={i} activity={task.activity} allocation={task.allocation} checked={this.state.checked[i]} handleTaskClick={this.handleTaskClick}/>);
             i++;
         }.bind(this));
         return (
@@ -174,6 +173,11 @@ var DailySummary = React.createClass({
     },
     deleteTask: function () {
         console.log('delete task');
+    },
+    handleTaskClick: function (index, checked) {
+        var checkedTasks = this.state.checked.slice();
+        checkedTasks[index] = checked;
+        this.setState({checked: checkedTasks});
     }
 });
 
