@@ -119,7 +119,7 @@ var Timetable = React.createClass({
                 <hr/>
                 <DailySummary tasks={this.state.dailyTasks} deleteTasks={this.deleteDailyTasks}/>
                 <hr/>
-                <WeeklySummary tasks={weeklyTasks}/>
+                <WeeklySummary tasks={weeklyTasks} date={this.state.today}/>
             </div>
         );
     },
@@ -204,12 +204,11 @@ var DailySummary = React.createClass({
 
 var WeeklySummary = React.createClass({
     render: function () {
-        var today = moment();
-        var dow = today.weekday();
+        var dow = this.props.date.weekday();
         var days = {};
         var projects = new Set();
         for (var i = 0; i < 5; i++) {
-            var key = moment().add(i - dow + 1, 'day').format('YYYY-MM-DD');
+            var key = this.props.date.clone().add(i - dow, 'day').format('YYYY-MM-DD');
             days[i] = {};
             if (key in this.props.tasks) {
                 var dailyProject = this.props.tasks[key];
