@@ -98,11 +98,18 @@ var Timetable = React.createClass({
     getInitialState: function () {
         return {
             today: moment(),
-            dailyTasks: [{ project: PROJECTS[0], activity: ACTIVITIES[0], allocation: ALLOCATION[0] }, { project: PROJECTS[1], activity: ACTIVITIES[2], allocation: ALLOCATION[3] }]
+            weeklyTasks: TASKS
         };
     },
+    dailyTasks: function() {
+              var today = this.state.today.format('YYYY-MM-DD');
+              if (today in this.state.weeklyTasks) {
+                  return this.state.weeklyTasks[today];
+              } 
+              return [];
+    },
+
     render: function () {
-        var weeklyTasks = TASKS;
         return (
             <div>
                 <form className='task-table'>
@@ -117,21 +124,25 @@ var Timetable = React.createClass({
                     </div>
                 </form>
                 <hr/>
-                <DailySummary tasks={this.state.dailyTasks} deleteTasks={this.deleteDailyTasks}/>
+                <DailySummary tasks={this.dailyTasks()} deleteTasks={this.deleteDailyTasks}/>
                 <hr/>
-                <WeeklySummary tasks={weeklyTasks} date={this.state.today}/>
+                <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today}/>
             </div>
         );
     },
     deleteDailyTasks: function (indexes) {
         var dailyTasks = [];
-        for (var i = 0; i < this.state.dailyTasks.length; i++) {
+        var oldTasks = this.dailyTasks();
+        for (var i = 0; i < oldTasks.length; i++) {
             if (indexes.indexOf(i) >= 0) {
                 continue;
             }
-            dailyTasks.push(this.state.dailyTasks[i]);
+            dailyTasks.push(oldTasks[i]);
         }
-        this.setState({ dailyTasks: dailyTasks });
+        var weeklyTasks = this.state.weeklyTasks;
+        var today = this.state.today.format('YYYY-MM-DD');
+        weeklyTasks[today] = dailyTasks;
+        this.setState({ weeklyTasks: weeklyTasks });
     },
     changeDate: function (d) {
         this.setState({ today: d });
