@@ -98,18 +98,18 @@ var Timetable = React.createClass({
     getInitialState: function () {
         return {
             today: moment(),
-            weeklyTasks: TASKS
+            weeklyTasks: TASKS,
         };
     },
-    dailyTasks: function() {
-              var today = this.state.today.format('YYYY-MM-DD');
-              if (today in this.state.weeklyTasks) {
-                  return this.state.weeklyTasks[today];
-              } 
-              return [];
+    dailyTasks: function () {
+        var today = this.state.today.format('YYYY-MM-DD');
+        if (today in this.state.weeklyTasks) {
+            return this.state.weeklyTasks[today];
+        }
+        return [];
     },
-
     render: function () {
+        var dailyTasks = this.dailyTasks();
         return (
             <div>
                 <form className='task-table'>
@@ -124,7 +124,7 @@ var Timetable = React.createClass({
                     </div>
                 </form>
                 <hr/>
-                <DailySummary tasks={this.dailyTasks()} deleteTasks={this.deleteDailyTasks}/>
+                <DailySummary tasks={dailyTasks} deleteTasks={this.deleteDailyTasks}/>
                 <hr/>
                 <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today}/>
             </div>
@@ -154,33 +154,34 @@ var Timetable = React.createClass({
 
 
 var DailyTask = React.createClass({
+    getInitialState: function () {
+        return {
+            checked: false
+        };
+    },
     render: function () {
         return (
-            <tr><td><input type="checkbox" checked={this.props.checked}  onClick={this.handleClick}/></td><td>{this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td></tr>
+            <tr><td><input type="checkbox" value={this.state.checked} onChange={this.handleClick}/></td><td>{this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td></tr>
         );
     },
-    handleClick: function (e) {
-        this.props.handleTaskClick(this.props.index, !this.props.checked);
+    handleClick: function () {
+        var newState = !this.state.checked;
+        this.setState({ checked: newState });
+        this.props.handleTaskClick(this.props.index, newState);
     }
 });
 
 var DailySummary = React.createClass({
-    initCheckboxes: function () {
-        var checked = [];
-        this.props.tasks.forEach(function (task) {
-            checked.push(false);
-        }.bind(this));
-        return checked;
-    },
     getInitialState: function () {
-        var checked = this.initCheckboxes();
-        return { checked: checked };
+        return {
+            checkedIndexes: {},
+        };
     },
     render: function () {
         var rows = [];
         var i = 0;
         this.props.tasks.forEach(function (task) {
-            rows.push(<DailyTask project={task.project} key={i} index={i} activity={task.activity} allocation={task.allocation} checked={this.state.checked[i]} handleTaskClick={this.handleTaskClick}/>);
+            rows.push(<DailyTask project={task.project} key={task.id} index={i} activity={task.activity} allocation={task.allocation} handleTaskClick={this.handleTaskClick}/>);
             i++;
         }.bind(this));
         return (
@@ -198,18 +199,20 @@ var DailySummary = React.createClass({
     },
     deleteTasks: function () {
         var indexes = [];
-        for (var i = 0; i < this.state.checked.length; i++) {
-            if (this.state.checked[i])
-                indexes.push(i);
+        for (var k in this.state.checkedIndexes) {
+            if (this.state.checkedIndexes[k])
+                indexes.push(parseInt(k));
         }
         this.props.deleteTasks(indexes);
-        var checked = this.initCheckboxes();
-        this.setState({ checked: checked });
+        this.setState({ checkedIndexes: {} });
     },
     handleTaskClick: function (index, checked) {
-        var checkedTasks = this.state.checked.slice();
-        checkedTasks[index] = checked;
-        this.setState({ checked: checkedTasks });
+        var checkedIndexes = {};
+        for (var k in this.state.checkedIndexes) {
+            checkedIndexes[k] = this.state.checkedIndexes[k];
+        }
+        checkedIndexes[index] = checked;
+        this.setState({ checkedIndexes: checkedIndexes });
     }
 });
 
@@ -278,8 +281,8 @@ for (var i = 0; i < JNT.length; i++) {
 
 var TASKS = {
     '2016-07-04': [{ id: 0, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-04' }],
-    '2016-07-05': [{ id: 0, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-05' },
-        { id: 0, activity: { id: 0, name: 'Activity 2' }, project: { id: 0, name: 'Project b' }, allocation: { id: 2, name: '1/2', value: 0.5 }, date: '2016-07-05' }]
+    '2016-07-05': [{ id: 1, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-05' },
+        { id: 2, activity: { id: 0, name: 'Activity 2' }, project: { id: 0, name: 'Project b' }, allocation: { id: 2, name: '1/2', value: 0.5 }, date: '2016-07-05' }]
 }
 
 var PROJECTS = [
