@@ -13,15 +13,25 @@ require('react-datepicker/dist/react-datepicker.css');
 var Option = React.createClass({
     render: function () {
         return (
-            <option value="{this.props.val.id}">{this.props.val.name}</option>
+            <option value={this.props.val.id}>{this.props.val.name}</option>
         );
     }
 });
 
 
 var SelectList = React.createClass({
+    getInitialState: function () {
+        var val = this.props.values[0].id;
+        return {
+            selected: val
+        };
+    },
+    componentWillMount: function () {
+        var val = this.props.values[0].id;
+        this.props.changeFunc(val);
+
+    },
     render: function () {
-        var selected = '';
         var options = [];
         this.props.values.forEach(function (val) {
             options.push(<Option val={val} key={val.id}/>);
@@ -29,11 +39,15 @@ var SelectList = React.createClass({
 
         return (
             <div className={this.props.cssclass}>
-                <label htmlFor={this.props.id} className='select-label'>{this.props.label}</label><select className='select-form' value="{selected}" id={this.props.id}>
+                <label htmlFor={this.props.id} className='select-label'>{this.props.label}</label><select className='select-form' value={this.state.selected} id={this.props.id} onChange={this.onChange}>
                     {options}
                 </select>
             </div>
         );
+    },
+    onChange: function (e) {
+        this.setState({ selected: e.target.value });
+        this.props.changeFunc(e.target.value);
     }
 });
 
@@ -94,11 +108,27 @@ var Comment = React.createClass({
     }
 });
 
+function arrayToMap(a) {
+    var m = {};
+    for (var i = 0; i < a.length; i++) {
+        m[a[i].id] = a[i];
+    }
+    return m;
+}
+
 var Timetable = React.createClass({
     getInitialState: function () {
         return {
             today: moment(),
             weeklyTasks: TASKS,
+            user: null,
+            project_id: null,
+            activity_id: null,
+            allocation_id: null,
+            users: arrayToMap(USERS),
+            projects: arrayToMap(PROJECTS),
+            activities: arrayToMap(ACTIVITIES),
+            allocations: arrayToMap(ALLOCATION),
         };
     },
     dailyTasks: function () {
@@ -113,11 +143,11 @@ var Timetable = React.createClass({
         return (
             <div>
                 <form className='task-table'>
-                    <SelectList values={USERS} label='Trigramme' cssclass='user'/>
+                    <SelectList values={USERS} label='Trigramme' cssclass='user' changeFunc={this.changeUser}/>
                     <JNTDatePicker jnt={JNT} date={this.state.today} changeDate={this.changeDate}/>
-                    <SelectList values={PROJECTS} label='Projet' cssclass='project-select' id='project'/>
-                    <SelectList values={ACTIVITIES} label='Activité' cssclass='activity-select' id='activity'/>
-                    <SelectList values={ALLOCATION} label='Temps' cssclass='allocation-select' id='allocation'/>
+                    <SelectList values={PROJECTS} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
+                    <SelectList values={ACTIVITIES} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
+                    <SelectList values={ALLOCATION} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
                     <Comment />
                     <div style={{ display: 'table-row' }}>
                         <input type='button' onClick={this.addTime} value='Ajouter cette tâche'  style={{ display: 'table-cell' }}/>
@@ -129,6 +159,18 @@ var Timetable = React.createClass({
                 <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today}/>
             </div>
         );
+    },
+    changeUser: function (user_id) {
+        this.setState({ user_id: parseInt(user_id) });
+    },
+    changeProject: function (project_id) {
+        this.setState({ project_id: parseInt(project_id) });
+    },
+    changeActivity: function (activity_id) {
+        this.setState({ activity_id: parseInt(activity_id) });
+    },
+    changeAllocation: function (allocation_id) {
+        this.setState({ allocation_id: parseInt(allocation_id) });
     },
     deleteDailyTasks: function (indexes) {
         var dailyTasks = [];
@@ -148,7 +190,23 @@ var Timetable = React.createClass({
         this.setState({ today: d });
     },
     addTime: function () {
-        console.log('add time');
+        var weeklyTasks = {};
+        for (var k in this.state.weeklyTasks) {
+            weeklyTasks[k] = this.state.weeklyTasks[k];
+        }
+
+        var today = this.state.today.format('YYYY-MM-DD');
+        if (!(today in weeklyTasks))
+            weeklyTasks[today] = [];
+        TASK_ID++;
+        weeklyTasks[today].push({
+            id: TASK_ID,
+            activity: this.state.activities[this.state.activity_id],
+            project: this.state.projects[this.state.project_id],
+            allocation: this.state.allocations[this.state.allocation_id],
+            date: today
+        })
+        this.setState({ weeklyTasks: weeklyTasks });
     }
 });
 
@@ -228,8 +286,11 @@ var WeeklySummary = React.createClass({
                 var dailyProject = this.props.tasks[key];
 
                 for (var j = 0; j < dailyProject.length; j++) {
-                    days[i][dailyProject[j].project.name] = dailyProject[j].allocation;
-                    projects.add(dailyProject[j].project.name);
+                    var projectName = dailyProject[j].project.name;
+                    if (!(projectName in days[i]))
+                        days[i][projectName] = [];
+                    days[i][projectName].push(dailyProject[j].allocation);
+                    projects.add(projectName);
                 }
             }
         }
@@ -246,8 +307,10 @@ var WeeklySummary = React.createClass({
                     projectdays[i] = '';
                 } else {
                     projectdays[i] = days[i][p];
-                    projectTotal += days[i][p].value;
-                    total += days[i][p].value;
+                    for (var j = 0; j < projectdays[i].length; j++) {
+                        projectTotal += projectdays[i][j].value;
+                        total += projectdays[i][j].value;
+                    }
                 }
             }
             rows.push(<tr key={p}><td></td><td>{p}</td><td>{projectdays['0'].name}</td><td>{projectdays['1'].name}</td><td>{projectdays['2'].name}</td><td>{projectdays['3'].name}</td><td>{projectdays['4'].name}</td><td>{projectTotal}</td></tr>)
@@ -278,6 +341,8 @@ var JNT = ['2016-01-29', '2016-02-26', '2016-03-25', '2016-04-15', '2016-05-06',
 for (var i = 0; i < JNT.length; i++) {
     JNT[i] = moment(JNT[i], 'YYYY-MM-DD');
 }
+
+var TASK_ID = 2;
 
 var TASKS = {
     '2016-07-04': [{ id: 0, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-04' }],
