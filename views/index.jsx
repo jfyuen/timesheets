@@ -277,50 +277,55 @@ var DailySummary = React.createClass({
 var WeeklySummary = React.createClass({
     render: function () {
         var dow = this.props.date.weekday();
-        var days = {};
-        var projects = new Set();
+
+        var projects = {};
+        var defaultAllocation = { allocation: { name: '', value: 0 } }
+        var sumDays = {};
+        var total = 0;
+        var dates = []
         for (var i = 0; i < 5; i++) {
-            var key = this.props.date.clone().add(i - dow, 'day').format('YYYY-MM-DD');
-            days[i] = {};
-            if (key in this.props.tasks) {
-                var dailyProject = this.props.tasks[key];
+            sumDays[i] = 0;
+            var date = this.props.date.clone().add(i - dow, 'day').format('YYYY-MM-DD');
+            dates.push(date);
+            if (date in this.props.tasks) {
+
+                var dailyProject = this.props.tasks[date];
 
                 for (var j = 0; j < dailyProject.length; j++) {
                     var projectName = dailyProject[j].project.name;
-                    if (!(projectName in days[i]))
-                        days[i][projectName] = [];
-                    days[i][projectName].push(dailyProject[j].allocation);
-                    projects.add(projectName);
+                    if (!(projectName in projects))
+                        projects[projectName] = {};
+                    var activity = dailyProject[j].activity.name;
+                    if (!(activity in projects[projectName])) {
+                        projects[projectName][activity] = [defaultAllocation, defaultAllocation, defaultAllocation, defaultAllocation, defaultAllocation];
+                    }
+                    projects[projectName][activity][i] = dailyProject[j];
+                    sumDays[i] += dailyProject[j].allocation.value;
+                    total += dailyProject[j].allocation.value;
                 }
             }
         }
 
         var rows = [];
-        var total = 0;
-        var sumDays = {}
-
-        projects.forEach(function (p) {
-            var projectdays = {};
-            var projectTotal = 0;
-            for (var i = 0; i < 5; i++) {
-                if (!(p in days[i])) {
-                    projectdays[i] = '';
-                } else {
-                    projectdays[i] = days[i][p];
-                    for (var j = 0; j < projectdays[i].length; j++) {
-                        projectTotal += projectdays[i][j].value;
-                        total += projectdays[i][j].value;
-                    }
+        for (var p in projects) {
+            var key = p;
+            for (activity in projects[p]) {
+                key += activity;
+                var columns = [];
+                for (var i = 0; i < 5; i++) {
+                    var task = projects[p][activity][i];
+                    var taskKey = parseInt(task.id) + dates[i];
+                    columns.push(<td key={taskKey}>{task.allocation.name}</td>);
                 }
+                rows.push(<tr key={key}><td>{p}</td><td>{activity}</td>{columns}<td></td><td></td></tr>);
             }
-            rows.push(<tr key={p}><td></td><td>{p}</td><td>{projectdays['0'].name}</td><td>{projectdays['1'].name}</td><td>{projectdays['2'].name}</td><td>{projectdays['3'].name}</td><td>{projectdays['4'].name}</td><td>{projectTotal}</td></tr>)
-        }.bind(this));
+        }
         return (
             <table>
                 <caption>Semaine en cours</caption>
                 <tbody>
                     <tr>
-                        <th>Volet</th><th>Projet</th><th>Lundi</th><th>Mardi</th><th>Mercredi</th><th>Jeudi</th><th>Vendredi</th><th>Total</th>
+                        <th>Projet</th><th>Activité</th><th>Lundi</th><th>Mardi</th><th>Mercredi</th><th>Jeudi</th><th>Vendredi</th><th>Total</th>
                     </tr>
                     {rows}
                     <tr><td><strong>Total</strong></td><td></td><td>{sumDays['0']}</td><td>{sumDays['1']}</td><td>{sumDays['2']}</td><td>{sumDays['3']}</td><td>{sumDays['4']}</td><td>{total}</td></tr>
@@ -345,9 +350,9 @@ for (var i = 0; i < JNT.length; i++) {
 var TASK_ID = 2;
 
 var TASKS = {
-    '2016-07-04': [{ id: 0, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-04' }],
-    '2016-07-05': [{ id: 1, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-05' },
-        { id: 2, activity: { id: 0, name: 'Activity 2' }, project: { id: 0, name: 'Project b' }, allocation: { id: 2, name: '1/2', value: 0.5 }, date: '2016-07-05' }]
+    '2016-07-25': [{ id: 0, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-25' }],
+    '2016-07-28': [{ id: 1, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-28' },
+        { id: 2, activity: { id: 0, name: 'Activity 2' }, project: { id: 0, name: 'Project b' }, allocation: { id: 2, name: '1/2', value: 0.5 }, date: '2016-07-28' }]
 }
 
 var PROJECTS = [
