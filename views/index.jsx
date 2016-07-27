@@ -103,7 +103,7 @@ var JNTDatePicker = React.createClass({
 var Comment = React.createClass({
     render: function () {
         return (
-            <div className='comment'><label htmlFor='comment' className='comment-label'>Remarque</label><textarea id='comment'/></div>
+            <div className='comment'><label htmlFor='comment' className='comment-label'>Remarque</label><textarea id='comment' value={this.props.comment} onChange={this.props.updateComment}/></div>
         );
     }
 });
@@ -130,6 +130,7 @@ var Timetable = React.createClass({
             activities: arrayToMap(ACTIVITIES),
             allocations: arrayToMap(ALLOCATION),
             errorMsg: '',
+            comment: '',
         };
     },
     dailyTasks: function () {
@@ -149,7 +150,7 @@ var Timetable = React.createClass({
                     <SelectList values={PROJECTS} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
                     <SelectList values={ACTIVITIES} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
                     <SelectList values={ALLOCATION} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
-                    <Comment />
+                    <Comment comment={this.state.comment} updateComment={this.changeComment}/>
                     <div style={{ display: 'table-row' }}>
                         <input type='button' onClick={this.addTask} value='Ajouter cette tâche'  style={{ display: 'table-cell' }}/>
                     </div>
@@ -161,6 +162,9 @@ var Timetable = React.createClass({
                 <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today}/>
             </div>
         );
+    },
+    changeComment: function(e) {
+        this.setState({ comment: e.target.value });    
     },
     changeUser: function (user_id) {
         this.setState({ user_id: parseInt(user_id) });
@@ -223,7 +227,7 @@ var Timetable = React.createClass({
             project: this.state.projects[this.state.project_id],
             allocation: this.state.allocations[this.state.allocation_id],
             date: today
-        })
+        });
         this.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
     }
 });
