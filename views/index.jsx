@@ -150,7 +150,7 @@ var Timetable = React.createClass({
                     <SelectList values={ALLOCATION} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
                     <Comment />
                     <div style={{ display: 'table-row' }}>
-                        <input type='button' onClick={this.addTime} value='Ajouter cette tâche'  style={{ display: 'table-cell' }}/>
+                        <input type='button' onClick={this.addTask} value='Ajouter cette tâche'  style={{ display: 'table-cell' }}/>
                     </div>
                 </form>
                 <hr/>
@@ -189,7 +189,7 @@ var Timetable = React.createClass({
     changeDate: function (d) {
         this.setState({ today: d });
     },
-    addTime: function () {
+    addTask: function () {
         var weeklyTasks = {};
         for (var k in this.state.weeklyTasks) {
             weeklyTasks[k] = this.state.weeklyTasks[k];
