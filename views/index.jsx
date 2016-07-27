@@ -129,6 +129,7 @@ var Timetable = React.createClass({
             projects: arrayToMap(PROJECTS),
             activities: arrayToMap(ACTIVITIES),
             allocations: arrayToMap(ALLOCATION),
+            errorMsg: '',
         };
     },
     dailyTasks: function () {
@@ -153,6 +154,7 @@ var Timetable = React.createClass({
                         <input type='button' onClick={this.addTask} value='Ajouter cette tâche'  style={{ display: 'table-cell' }}/>
                     </div>
                 </form>
+                <div className='error'>{this.state.errorMsg}</div>
                 <hr/>
                 <DailySummary tasks={dailyTasks} deleteTasks={this.deleteDailyTasks}/>
                 <hr/>
@@ -162,6 +164,7 @@ var Timetable = React.createClass({
     },
     changeUser: function (user_id) {
         this.setState({ user_id: parseInt(user_id) });
+        // Todo: reload list of tasks for the user
     },
     changeProject: function (project_id) {
         this.setState({ project_id: parseInt(project_id) });
@@ -184,21 +187,36 @@ var Timetable = React.createClass({
         var weeklyTasks = this.state.weeklyTasks;
         var today = this.state.today.format('YYYY-MM-DD');
         weeklyTasks[today] = dailyTasks;
-        this.setState({ weeklyTasks: weeklyTasks });
+        this.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
     },
     changeDate: function (d) {
-        this.setState({ today: d });
+        this.setState({ today: d, errorMsg: '' });
     },
     addTask: function () {
+        var today = this.state.today.format('YYYY-MM-DD');
+        var dailyWorkedTime = 0;
+        if (today in this.state.weeklyTasks) {
+            var dailyTasks = this.state.weeklyTasks[today];
+            for (var i = 0;i < dailyTasks.length; i++)
+                var task = dailyTasks[i];
+                if (task.activity.id == this.state.activity_id && task.project.id == this.state.project_id) {
+                    this.setState({errorMsg: 'Cette tâche existe déjà pour la journée.'});
+                    return;
+                }
+                dailyWorkedTime += task.allocation.value;
+        }
+        if (dailyWorkedTime + this.state.allocations[this.state.allocation_id].value > 1.) {
+                    this.setState({errorMsg: "Vous ne pouvez pas travailler plus d'une journée le même jour."});
+                    return;
+        } 
         var weeklyTasks = {};
         for (var k in this.state.weeklyTasks) {
             weeklyTasks[k] = this.state.weeklyTasks[k];
         }
 
-        var today = this.state.today.format('YYYY-MM-DD');
         if (!(today in weeklyTasks))
             weeklyTasks[today] = [];
-        TASK_ID++;
+        TASK_ID++; // TODO: get a real taskID from the server
         weeklyTasks[today].push({
             id: TASK_ID,
             activity: this.state.activities[this.state.activity_id],
@@ -206,7 +224,7 @@ var Timetable = React.createClass({
             allocation: this.state.allocations[this.state.allocation_id],
             date: today
         })
-        this.setState({ weeklyTasks: weeklyTasks });
+        this.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
     }
 });
 

@@ -39,3 +39,7 @@ textarea {
 .user {
     display: table-row;
 }
+
+.error {
+    color: red;
+}
