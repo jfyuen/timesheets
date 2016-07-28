@@ -6,3 +6,5 @@ jspm_packages
 static/bundle.js
 .DS_Store
 .vscode
+timesheets.iml
+.idea

@@ -24,7 +24,7 @@
   },
   "scripts": {
     "webpack-watch": "webpack -w",
-    "server": "node ./server.js",
+    "server": "node ./server/index.js",
     "dev": "concurrently --kill-others \"npm run webpack-watch\" \"npm run server\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
