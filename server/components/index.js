@@ -10,19 +10,12 @@ var projects = require('./projects'),
     jnt = require('./jnt');
 
 module.exports.init = function (app, callback) {
+    app.use('/projects', projects);
+    app.use('/tasks', tasks);
+    app.use('/activities', activities);
+    app.use('/allocations', allocations);
+    app.use('/users', users);
+    app.use('/jnt', jnt);
 
-    //define routes
-    var api = express.Router();
-    app.use('/api', api);
-    api.use('/projects', projects);
-    api.use('/tasks', tasks);
-    api.use('/activities', activities);
-    api.use('/allocations', allocations);
-    api.use('/users', users);
-    api.use('/jnt', jnt);
-
-
-    // put init fn here
-    // use callback for async fn
     callback()
 };
