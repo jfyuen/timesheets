@@ -7,6 +7,7 @@ var ReactDOM = require('react-dom');
 var moment = require('moment');
 moment.locale('en-gb');
 var DatePicker = require('react-datepicker');
+var async = require('async');
 require('../static/css/style.css');
 require('react-datepicker/dist/react-datepicker.css');
 require('whatwg-fetch');
@@ -19,24 +20,19 @@ var Option = React.createClass({
     }
 });
 
-
 var SelectList = React.createClass({
     getInitialState: function () {
-        var val = this.props.values[0].id;
         return {
-            selected: val
+            selected: '-1'
         };
     },
-    componentWillMount: function () {
-        var val = this.props.values[0].id;
-        this.props.changeFunc(val);
-
-    },
     render: function () {
-        var options = [];
-        this.props.values.forEach(function (val) {
-            options.push(<Option val={val} key={val.id}/>);
-        }.bind(this));
+        var options = [<Option val='' key='-1'/>];
+        if (this.props.values) {
+            this.props.values.forEach(function (val) {
+                options.push(<Option val={val} key={val.id}/>);
+            }.bind(this));
+        }
 
         return (
             <div className={this.props.cssclass}>
@@ -52,6 +48,11 @@ var SelectList = React.createClass({
     }
 });
 
+
+function isWeekday(d) {
+    var dow = d.weekday();
+    return dow < 5;
+}
 
 var JNTDatePicker = React.createClass({
     getInitialState: function () {
@@ -75,7 +76,7 @@ var JNTDatePicker = React.createClass({
             });
         }).catch(function (ex) {
             console.log('parsing failed', ex)
-        })
+        });
     },
 
     componentWillUnmount: function () {
@@ -103,7 +104,7 @@ var JNTDatePicker = React.createClass({
                 return false;
             }
         }
-        return this.isWeekday(d);
+        return isWeekday(d);
     },
 
     previousDay: function () {
@@ -123,11 +124,6 @@ var JNTDatePicker = React.createClass({
     handleChange: function (d) {
         this.props.changeDate(d);
     },
-
-    isWeekday: function (d) {
-        var dow = d.weekday();
-        return dow < 5;
-    }
 });
 
 var Comment = React.createClass({
@@ -146,22 +142,62 @@ function arrayToMap(a) {
     return m;
 }
 
+function fetcher(url, cb) {
+    fetch(url).then(function (response) {
+        return response.json();
+    }).then(function (content) {
+        cb(null, content)
+    }).catch(function (ex) {
+        cb(ex, null);
+    });
+};
+
 var Timetable = React.createClass({
     getInitialState: function () {
         return {
             today: moment(),
             weeklyTasks: TASKS,
-            user: null,
-            project_id: null,
-            activity_id: null,
-            allocation_id: null,
-            users: arrayToMap(USERS),
-            projects: arrayToMap(PROJECTS),
-            activities: arrayToMap(ACTIVITIES),
-            allocations: arrayToMap(ALLOCATION),
+            user_id: -1,
+            project_id: -1,
+            activity_id: -1,
+            allocation_id: -1,
+            users: {},
+            projects: {},
+            activities: {},
+            allocations: {},
             errorMsg: '',
             comment: '',
         };
+    },
+    componentDidMount: function () {
+        var that = this;
+        async.parallel({
+            activities: function (cb) {
+                fetcher('/activities', cb);
+            },
+            projects: function (cb) {
+                fetcher('/projects', cb);
+            },
+            allocations: function (cb) {
+                fetcher('/allocations', cb);
+            },
+            users: function (cb) {
+                fetcher('/users', cb);
+            },
+        }, function (err, results) {
+            if (err) {
+                console.log('error in async parrallel', err);
+                that.setState({ errorMsg: err });
+            } else {
+                var state = {}
+                for (var k in results) {
+                    state[k] = {};
+                    state[k]['dict'] = arrayToMap(results[k]);
+                    state[k]['list'] = results[k];
+                }
+                that.setState(state);
+            }
+        });
     },
     dailyTasks: function () {
         var today = this.state.today.format('YYYY-MM-DD');
@@ -172,14 +208,15 @@ var Timetable = React.createClass({
     },
     render: function () {
         var dailyTasks = this.dailyTasks();
+
         return (
             <div>
                 <form className='task-table'>
-                    <SelectList values={USERS} label='Trigramme' cssclass='user' changeFunc={this.changeUser}/>
+                    <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser}/>
                     <JNTDatePicker date={this.state.today} changeDate={this.changeDate}/>
-                    <SelectList values={PROJECTS} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
-                    <SelectList values={ACTIVITIES} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
-                    <SelectList values={ALLOCATION} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
+                    <SelectList values={this.state.projects.list} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
+                    <SelectList values={this.state.activities.list} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
+                    <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
                     <Comment comment={this.state.comment} updateComment={this.changeComment}/>
                     <div style={{ display: 'table-row' }}>
                         <input type='button' onClick={this.addTask} value='Ajouter cette tâche'  style={{ display: 'table-cell' }}/>
@@ -227,7 +264,15 @@ var Timetable = React.createClass({
         this.setState({ today: d, errorMsg: '' });
     },
     addTask: function () {
-        var today = this.state.today.format('YYYY-MM-DD');
+        if (!isWeekday(this.state.today)){
+            this.setState({ errorMsg: 'Veuillez sélectionner un jour de la semaine entre lundi et vendredi.' });
+            return;
+        }
+        if (this.state.allocation_id == -1 || this.state.user_id == -1 || this.state.project_id == -1 || this.state.activity_id == -1) {
+            this.setState({ errorMsg: 'Veuillez sélectionner un choix valide.' });
+            return;
+        }
+            var today = this.state.today.format('YYYY-MM-DD');
         var dailyWorkedTime = 0;
         if (today in this.state.weeklyTasks) {
             var dailyTasks = this.state.weeklyTasks[today];
@@ -239,7 +284,7 @@ var Timetable = React.createClass({
             }
             dailyWorkedTime += task.allocation.value;
         }
-        if (dailyWorkedTime + this.state.allocations[this.state.allocation_id].value > 1.) {
+        if (dailyWorkedTime + this.state.allocations.dict[this.state.allocation_id].value > 1.) {
             this.setState({ errorMsg: "Vous ne pouvez pas travailler plus d'une journée le même jour." });
             return;
         }
@@ -253,9 +298,9 @@ var Timetable = React.createClass({
         TASK_ID++; // TODO: get a real taskID from the server
         weeklyTasks[today].push({
             id: TASK_ID,
-            activity: this.state.activities[this.state.activity_id],
-            project: this.state.projects[this.state.project_id],
-            allocation: this.state.allocations[this.state.allocation_id],
+            activity: this.state.activities.dict[this.state.activity_id],
+            project: this.state.projects.dict[this.state.project_id],
+            allocation: this.state.allocations.dict[this.state.allocation_id],
             date: today
         });
         this.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
@@ -387,13 +432,6 @@ var WeeklySummary = React.createClass({
     },
 });
 
-var USERS = [
-    { id: 0, name: 'JFY' },
-    { id: 1, name: 'PCN' },
-    { id: 2, name: 'BDS' },
-]
-
-
 var TASK_ID = 2;
 
 var TASKS = {
@@ -401,25 +439,6 @@ var TASKS = {
     '2016-07-28': [{ id: 1, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-28' },
         { id: 2, activity: { id: 0, name: 'Activity 2' }, project: { id: 0, name: 'Project b' }, allocation: { id: 2, name: '1/2', value: 0.5 }, date: '2016-07-28' }]
 }
-
-var PROJECTS = [
-    { id: 0, name: 'Project A' },
-    { id: 1, name: 'Project B' },
-    { id: 2, name: 'Project C' },
-]
-
-var ACTIVITIES = [
-    { id: 0, name: 'Activity 1' },
-    { id: 1, name: 'Activity 2' },
-    { id: 2, name: 'Activity 3' },
-]
-
-var ALLOCATION = [
-    { id: 0, name: '1', value: 1 },
-    { id: 1, name: '3/4', value: 0.75 },
-    { id: 2, name: '1/2', value: 0.5 },
-    { id: 3, name: '1/4', value: 0.25 },
-]
 
 ReactDOM.render(
     <Timetable />,
