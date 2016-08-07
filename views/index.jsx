@@ -9,6 +9,7 @@ moment.locale('en-gb');
 var DatePicker = require('react-datepicker');
 require('../static/css/style.css');
 require('react-datepicker/dist/react-datepicker.css');
+require('whatwg-fetch');
 
 var Option = React.createClass({
     render: function () {
@@ -53,12 +54,41 @@ var SelectList = React.createClass({
 
 
 var JNTDatePicker = React.createClass({
+    getInitialState: function () {
+        return {
+            jnts: [],
+        };
+    },
+    componentDidMount: function () {
+        var that = this;
+        var jnts = [];
+        fetch('/jnt').then(function (response) {
+            return response.json();
+        }).then(function (content) {
+            for (var i = 0; i < content.length; i++) {
+                var day = moment(content[i], 'YYYY-MM-DD');
+                jnts.push(day);
+            }
+
+            that.setState({
+                jnts: jnts
+            });
+        }).catch(function (ex) {
+            console.log('parsing failed', ex)
+        })
+    },
+
+    componentWillUnmount: function () {
+        // Cannot cancel a fetch request: https://github.com/whatwg/fetch/issues/27
+        // this.serverRequest.abort(); // with jquery example: https://facebook.github.io/react/tips/initial-ajax.html
+    },
+
     render: function () {
         return (
             <div className='jnt-picker'>
                 <label htmlFor='date' >Date</label>
                 <div style={{ display: 'table-cell' }} >
-                    <DatePicker selected={this.props.date} onChange={this.handleChange} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='en-gb'  excludeDates={this.props.jnt}/>
+                    <DatePicker selected={this.props.date} onChange={this.handleChange} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='en-gb'  excludeDates={this.state.jnts}/>
 
                     <input type='button' onClick={this.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
                     <input type='button' onClick={this.nextDay} value='Jour suivant'  className="button" style={{ display: 'table-cell' }}/>
@@ -68,8 +98,8 @@ var JNTDatePicker = React.createClass({
     },
 
     isWorkingDay: function (d) {
-        for (var i = 0; i < this.props.jnt.length; i++) {
-            if (this.props.jnt[i].format('YYYY-MM-DD') == d.format('YYYY-MM-DD')) {
+        for (var i = 0; i < this.state.jnts.length; i++) {
+            if (this.state.jnts[i].format('YYYY-MM-DD') == d.format('YYYY-MM-DD')) {
                 return false;
             }
         }
@@ -146,7 +176,7 @@ var Timetable = React.createClass({
             <div>
                 <form className='task-table'>
                     <SelectList values={USERS} label='Trigramme' cssclass='user' changeFunc={this.changeUser}/>
-                    <JNTDatePicker jnt={JNT} date={this.state.today} changeDate={this.changeDate}/>
+                    <JNTDatePicker date={this.state.today} changeDate={this.changeDate}/>
                     <SelectList values={PROJECTS} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
                     <SelectList values={ACTIVITIES} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
                     <SelectList values={ALLOCATION} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
@@ -163,8 +193,8 @@ var Timetable = React.createClass({
             </div>
         );
     },
-    changeComment: function(e) {
-        this.setState({ comment: e.target.value });    
+    changeComment: function (e) {
+        this.setState({ comment: e.target.value });
     },
     changeUser: function (user_id) {
         this.setState({ user_id: parseInt(user_id) });
@@ -201,18 +231,18 @@ var Timetable = React.createClass({
         var dailyWorkedTime = 0;
         if (today in this.state.weeklyTasks) {
             var dailyTasks = this.state.weeklyTasks[today];
-            for (var i = 0;i < dailyTasks.length; i++)
+            for (var i = 0; i < dailyTasks.length; i++)
                 var task = dailyTasks[i];
-                if (task.activity.id == this.state.activity_id && task.project.id == this.state.project_id) {
-                    this.setState({errorMsg: 'Cette tâche existe déjà pour la journée.'});
-                    return;
-                }
-                dailyWorkedTime += task.allocation.value;
+            if (task.activity.id == this.state.activity_id && task.project.id == this.state.project_id) {
+                this.setState({ errorMsg: 'Cette tâche existe déjà pour la journée.' });
+                return;
+            }
+            dailyWorkedTime += task.allocation.value;
         }
         if (dailyWorkedTime + this.state.allocations[this.state.allocation_id].value > 1.) {
-                    this.setState({errorMsg: "Vous ne pouvez pas travailler plus d'une journée le même jour."});
-                    return;
-        } 
+            this.setState({ errorMsg: "Vous ne pouvez pas travailler plus d'une journée le même jour." });
+            return;
+        }
         var weeklyTasks = {};
         for (var k in this.state.weeklyTasks) {
             weeklyTasks[k] = this.state.weeklyTasks[k];
@@ -363,11 +393,6 @@ var USERS = [
     { id: 2, name: 'BDS' },
 ]
 
-var JNT = ['2016-01-29', '2016-02-26', '2016-03-25', '2016-04-15', '2016-05-06', '2016-07-15', '2016-08-26', '2016-10-31', '2016-12-26', '2016-12-27'];
-
-for (var i = 0; i < JNT.length; i++) {
-    JNT[i] = moment(JNT[i], 'YYYY-MM-DD');
-}
 
 var TASK_ID = 2;
 
