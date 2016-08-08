@@ -156,7 +156,7 @@ var Timetable = React.createClass({
     getInitialState: function () {
         return {
             today: moment(),
-            weeklyTasks: TASKS,
+            weeklyTasks: {},
             user_id: -1,
             project_id: -1,
             activity_id: -1,
@@ -234,8 +234,17 @@ var Timetable = React.createClass({
         this.setState({ comment: e.target.value });
     },
     changeUser: function (user_id) {
-        this.setState({ user_id: parseInt(user_id) });
-        // Todo: reload list of tasks for the user
+        var that = this;
+        var jnts = [];
+        // TODO: customize by user_id
+        fetch('/tasks').then(function (response) {
+            return response.json();
+        }).then(function (content) {
+            that.setState({ user_id: parseInt(user_id), weeklyTasks: content });
+        }).catch(function (ex) {
+            console.log(ex);
+            that.setState({ errorMsg: 'Error in receiving user tasks' + ex });
+        });
     },
     changeProject: function (project_id) {
         this.setState({ project_id: parseInt(project_id) });
@@ -264,7 +273,7 @@ var Timetable = React.createClass({
         this.setState({ today: d, errorMsg: '' });
     },
     addTask: function () {
-        if (!isWeekday(this.state.today)){
+        if (!isWeekday(this.state.today)) {
             this.setState({ errorMsg: 'Veuillez sélectionner un jour de la semaine entre lundi et vendredi.' });
             return;
         }
@@ -272,22 +281,13 @@ var Timetable = React.createClass({
             this.setState({ errorMsg: 'Veuillez sélectionner un choix valide.' });
             return;
         }
-            var today = this.state.today.format('YYYY-MM-DD');
-        var dailyWorkedTime = 0;
-        if (today in this.state.weeklyTasks) {
-            var dailyTasks = this.state.weeklyTasks[today];
-            for (var i = 0; i < dailyTasks.length; i++)
-                var task = dailyTasks[i];
-            if (task.activity.id == this.state.activity_id && task.project.id == this.state.project_id) {
-                this.setState({ errorMsg: 'Cette tâche existe déjà pour la journée.' });
-                return;
-            }
-            dailyWorkedTime += task.allocation.value;
-        }
-        if (dailyWorkedTime + this.state.allocations.dict[this.state.allocation_id].value > 1.) {
-            this.setState({ errorMsg: "Vous ne pouvez pas travailler plus d'une journée le même jour." });
+        var today = this.state.today.format('YYYY-MM-DD');
+        var dailyWorkedTime = this.computeDailyWorkedTime(today);
+        if (dailyWorkedTime.err) {
+            this.setState({ errorMsg: dailyWorkedTime.err });
             return;
         }
+
         var weeklyTasks = {};
         for (var k in this.state.weeklyTasks) {
             weeklyTasks[k] = this.state.weeklyTasks[k];
@@ -304,6 +304,25 @@ var Timetable = React.createClass({
             date: today
         });
         this.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
+    },
+    computeDailyWorkedTime: function (today) {
+        var dailyWorkedTime = 0;
+
+        if (today in this.state.weeklyTasks) {
+            var dailyTasks = this.state.weeklyTasks[today];
+            for (var i = 0; i < dailyTasks.length; i++) {
+                var task = dailyTasks[i];
+                if (task.activity.id == this.state.activity_id && task.project.id == this.state.project_id) {
+                    return { err: 'Cette tâche existe déjà pour la journée.', value: 0 };
+                }
+                dailyWorkedTime += task.allocation.value;
+            }
+        }
+        if (dailyWorkedTime + this.state.allocations.dict[this.state.allocation_id].value > 1.) {
+            return { err: "Vous ne pouvez pas travailler plus d'une journée le même jour.", value: 0 };
+
+        }
+        return { err: null, value: dailyWorkedTime };
     }
 });
 
@@ -433,12 +452,6 @@ var WeeklySummary = React.createClass({
 });
 
 var TASK_ID = 2;
-
-var TASKS = {
-    '2016-07-25': [{ id: 0, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-25' }],
-    '2016-07-28': [{ id: 1, activity: { id: 0, name: 'Activity 1' }, project: { id: 0, name: 'Project A' }, allocation: { id: 0, name: '1', value: 1 }, date: '2016-07-28' },
-        { id: 2, activity: { id: 0, name: 'Activity 2' }, project: { id: 0, name: 'Project b' }, allocation: { id: 2, name: '1/2', value: 0.5 }, date: '2016-07-28' }]
-}
 
 ReactDOM.render(
     <Timetable />,
