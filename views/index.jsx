@@ -236,8 +236,7 @@ var Timetable = React.createClass({
     changeUser: function (user_id) {
         var that = this;
         var jnts = [];
-        // TODO: customize by user_id
-        fetch('/tasks').then(function (response) {
+        fetch('/users/' + user_id + '/tasks').then(function (response) {
             return response.json();
         }).then(function (content) {
             that.setState({ user_id: parseInt(user_id), weeklyTasks: content });
