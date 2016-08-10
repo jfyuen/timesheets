@@ -60,21 +60,28 @@ var dbWrapper = {
         }
 
         this.db.run('CREATE TABLE NON_WORKING_DAYS (DAY DATE)');
-        var jnts = [
+        var nonWorkingDays = [
+            '2016-01-01',
             '2016-01-29',
             '2016-02-26',
             '2016-03-25',
+            '2016-03-28',
             '2016-04-15',
+            '2016-05-05',
             '2016-05-06',
+            '2016-05-16',
+            '2016-07-14',
             '2016-07-15',
             '2016-08-26',
             '2016-10-31',
+            '2016-11-01',
+            '2016-11-11',
             '2016-12-26',
-            '2016-12-27'
+            '2016-12-27',
         ];
         var stmt = this.db.prepare('INSERT INTO NON_WORKING_DAYS(DAY) VALUES (strftime("%Y-%m-%d", ?))');
-        for (var i = 0; i < jnts.length; i++) {
-            stmt.run(jnts[i]);
+        for (var i = 0; i < nonWorkingDays.length; i++) {
+            stmt.run(nonWorkingDays[i]);
         }
         stmt.finalize();
     },
