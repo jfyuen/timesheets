@@ -3,17 +3,19 @@
 const express = require("express");
 
 var router = express.Router();
+var db = require('./db');
 
 router.route('/')
     .post()
     .get(function (req, res) {
-        res.status(200).json([
-            {id: 0, name: 'Project 1'},
-            {id: 1, name: 'Project 2'},
-            {id: 2, name: 'Project 3'}
-        ]);
+        db.getProjects(function (err, results) {
+            if (err) {
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(results);
+            }
+        });
     });
-
 router.route('/:id')
     .put()
     .delete()

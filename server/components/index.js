@@ -1,7 +1,6 @@
 "use strict";
 
 const express = require("express");
-
 var projects = require('./projects'),
     activities = require('./activities'),
     allocations = require('./allocations'),

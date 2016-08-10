@@ -3,15 +3,18 @@
 const express = require("express");
 
 var router = express.Router();
+var db = require('./db');
 
 router.route('/')
     .post()
     .get(function (req, res) {
-        res.status(200).json([
-            {id: 0, name: 'Activity 1'},
-            {id: 1, name: 'Activity 2'},
-            {id: 2, name: 'Activity 3'}
-        ]);
+        db.getActivities(function (err, results) {
+            if (err) {
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(results);
+            }
+        });
     });
 
 router.route('/:id')

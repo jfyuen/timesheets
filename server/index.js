@@ -3,7 +3,8 @@
 
 const path = require('path'),
     express = require('express'),
-    config = require('./config');
+    config = require('./config'),
+    db = require('./components/db');
 
 var app = express();
 
@@ -20,4 +21,20 @@ require('./components').init(app, function (err) {
     }
 });
 
+function exitHandler(options, err) {
+    if (options.cleanup) {
+        db.close();
+    }
+    if (err) {
+        console.log(err.stack);
+    }
+    if (options.exit) {
+        process.exit();
+    }
+}
 
+process.on('exit', exitHandler.bind(null, { cleanup: true }));
+
+process.on('SIGINT', exitHandler.bind(null, { exit: true }));
+
+process.on('uncaughtException', exitHandler.bind(null, { exit: true }));
