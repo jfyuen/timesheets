@@ -18,10 +18,10 @@ var db = new sqlite3.Database(file);
 var dbWrapper = {
     db: db,
     addToTable: function (table, data) {
-        var stmt = db.prepare('INSERT INTO ' + table + '(ID, NAME, VALUE) VALUES (?, ?, ?)');
+        var stmt = db.prepare('INSERT INTO ' + table + '(ID, NAME) VALUES (?, ?)');
         for (var i = 0; i < data.length; i++) {
             var row = data[i];
-            stmt.run(row.id, row.name, row.value);
+            stmt.run(row.id, row.name);
         }
         stmt.finalize();
     },
@@ -52,14 +52,22 @@ var dbWrapper = {
             { id: 2, name: 'Project 3' }
         ];
 
-        var tablesData = [{ table: 'TIME_ALLOCATION', data: allocations }, { table: 'ACTIVITIES', data: activities }, { table: 'PROJECTS', data: projects }, { table: 'USERS', data: users }]
+        var tablesData = [{ table: 'ACTIVITIES', data: activities }, { table: 'PROJECTS', data: projects }, { table: 'USERS', data: users }]
         for (var i = 0; i < tablesData.length; i++) {
             var t = tablesData[i];
-            this.db.run('CREATE TABLE ' + t.table + ' (ID INTEGER, NAME TEXT, VALUE REAL)');
+            this.db.run('CREATE TABLE ' + t.table + ' (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL)');
             this.addToTable(t.table, t.data);
         }
 
-        this.db.run('CREATE TABLE NON_WORKING_DAYS (DAY DATE)');
+        this.db.run('CREATE TABLE TIME_ALLOCATION(ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL, VALUE REAL NOT NULL)');
+        stmt = db.prepare('INSERT INTO TIME_ALLOCATION(ID, NAME, VALUE) VALUES (?, ?, ?)');
+        for (var i = 0; i < allocations.length; i++) {
+            var row = allocations[i];
+            stmt.run(row.id, row.name, row.value);
+        }
+        stmt.finalize();
+
+        this.db.run('CREATE TABLE NON_WORKING_DAYS (DAY DATE PRIMARY KEY)');
         var nonWorkingDays = [
             '2016-01-01',
             '2016-01-29',
