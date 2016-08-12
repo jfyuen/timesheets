@@ -43,3 +43,23 @@ textarea {
 .error {
     color: red;
 }
+
+table {
+    border-collapse: collapse;
+}
+
+table, td, th {
+    border: 1px solid #cccccc;
+}
+
+th {
+    padding: 5px;
+}
+
+.green {
+    background-color: green;
+}
+
+.grey {
+    background-color: grey;
+}

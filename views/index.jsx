@@ -261,7 +261,7 @@ var Timetable = React.createClass({
             that.setState({ errorMsg: 'Error in receiving user tasks' + ex });
         });
     },
-    changeProject: function (project_id) {        
+    changeProject: function (project_id) {
         var projectActivities = { list: [] };
         var activities = this.state.activities.list;
         for (var i = 0; i < activities.length; i++) {
@@ -398,7 +398,7 @@ var DailyTask = React.createClass({
     },
     render: function () {
         return (
-            <tr><td><input type="checkbox" value={this.state.checked} onChange={this.handleClick}/></td><td>{this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td><td>{this.props.comment}</td></tr>
+            <tr><td><input type="checkbox" value={this.state.checked} onChange={this.handleClick}/> {this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td><td>{this.props.comment}</td></tr>
         );
     },
     handleClick: function () {
@@ -420,16 +420,18 @@ var DailySummary = React.createClass({
             rows.push(<DailyTask project={task.project} key={task.id} index={task.id} activity={task.activity} allocation={task.allocation} comment={task.comment} handleTaskClick={this.handleTaskClick}/>);
         }.bind(this));
         return (
-            <table>
-                <caption>Journée en cours</caption>
-                <tbody>
-                    <tr>
-                        <th>&nbsp; </th><th>Projet</th><th>Activité</th><th>Temps</th><th>Remarque</th>
-                    </tr>
-                    {rows}
-                    <tr><td colSpan="4"><input type="button" value="Effacer les tâches" onClick={this.deleteTasks}/></td></tr>
-                </tbody>
-            </table>
+            <div>
+                <table>
+                    <caption>Journée en cours</caption>
+                    <tbody>
+                        <tr>
+                            <th>Projet</th><th>Activité</th><th>Temps</th><th>Remarque</th>
+                        </tr>
+                        {rows}
+                    </tbody>
+                </table>
+                <input type="button" value="Effacer les tâches" onClick={this.deleteTasks}/>
+            </div>
         );
     },
     deleteTasks: function () {
@@ -494,9 +496,17 @@ var WeeklySummary = React.createClass({
                     var taskKey = parseInt(task.id) + dates[i];
                     columns.push(<td key={taskKey}>{task.allocation.name}</td>);
                 }
-                rows.push(<tr key={key}><td>{p}</td><td>{activity}</td>{columns}<td></td><td></td></tr>);
+                rows.push(<tr key={key}><td>{p}</td><td>{activity}</td>{columns}<td></td></tr>);
             }
         }
+
+        var totalCells = [];
+        for (var i = 0; i < 5; i++) {
+            var s = parseInt(i);
+            totalCells.push(<TotalCell total={sumDays[s]} key={'totalCell' + s}/>);
+        }
+
+        var totalCss = total == 5 ? 'green' : 'grey';
         return (
             <table>
                 <caption>Semaine en cours</caption>
@@ -505,11 +515,20 @@ var WeeklySummary = React.createClass({
                         <th>Projet</th><th>Activité</th><th>Lundi</th><th>Mardi</th><th>Mercredi</th><th>Jeudi</th><th>Vendredi</th><th>Total</th>
                     </tr>
                     {rows}
-                    <tr><td><strong>Total</strong></td><td></td><td>{sumDays['0']}</td><td>{sumDays['1']}</td><td>{sumDays['2']}</td><td>{sumDays['3']}</td><td>{sumDays['4']}</td><td>{total}</td></tr>
+                    <tr><td colSpan='2'><strong>Total</strong></td>{totalCells}<td className={totalCss}>{total}</td></tr>
                 </tbody>
             </table>
         );
     },
+});
+
+var TotalCell = React.createClass({
+    render: function () {
+        var css = this.props.total == 1 ? 'green' : 'grey';
+        return (
+            <td className={css}>{this.props.total}</td>
+        );
+    }
 });
 
 ReactDOM.render(
