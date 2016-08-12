@@ -11,9 +11,9 @@ if (!exists) {
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(file);
 
-// db.on('trace', function(q) {
-//     console.log(q);
-// });
+db.on('trace', function(q) {
+    console.log(q);
+});
 
 var dbWrapper = {
     db: db,
@@ -121,6 +121,22 @@ var dbWrapper = {
                         cb(err, null);
                     } else {
                         cb(null, { id: this.lastID });
+                    }
+                }
+            });
+    },
+    deleteTasks(task_ids, cb) {
+        console.log(task_ids);
+        this.db.run('DELETE FROM TASKS where rowid in (?)',
+            task_ids,
+            function (err) {
+                console.log(err);
+                if (cb) {
+                    if (err) {
+                        cb(err, null);
+                    } else {
+                        console.log(this.changes);
+                        cb(null, { changes: this.changes});
                     }
                 }
             });

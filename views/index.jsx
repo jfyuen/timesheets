@@ -270,18 +270,36 @@ var Timetable = React.createClass({
         this.setState({ allocation_id: parseInt(allocation_id) });
     },
     deleteDailyTasks: function (indexes) {
-        var dailyTasks = [];
-        var oldTasks = this.dailyTasks();
-        for (var i = 0; i < oldTasks.length; i++) {
-            if (indexes.indexOf(i) >= 0) {
-                continue;
+        var that = this;
+        fetch('/tasks', {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                task_ids: indexes
+            })
+                
+        }).then(function (response) {
+                        return response.json();
+        }).then(function (content) {
+            var dailyTasks = [];
+            var oldTasks = that.dailyTasks();
+            for (var i = 0; i < oldTasks.length; i++) {
+                if (indexes.indexOf(oldTasks[i].id) >= 0) {
+                    continue;
+                }
+                dailyTasks.push(oldTasks[i]);
             }
-            dailyTasks.push(oldTasks[i]);
-        }
-        var weeklyTasks = this.state.weeklyTasks;
-        var today = this.state.today.format('YYYY-MM-DD');
-        weeklyTasks[today] = dailyTasks;
-        this.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
+            var weeklyTasks = that.state.weeklyTasks;
+            var today = that.state.today.format('YYYY-MM-DD');
+            weeklyTasks[today] = dailyTasks;
+            that.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
+        }).catch(function (ex) {
+            console.log('parsing failed', ex)
+            that.setState({ errorMsg: ex });
+        });
     },
     changeDate: function (d) {
         this.setState({ today: d, errorMsg: '' });
@@ -388,10 +406,8 @@ var DailySummary = React.createClass({
     },
     render: function () {
         var rows = [];
-        var i = 0;
         this.props.tasks.forEach(function (task) {
-            rows.push(<DailyTask project={task.project} key={task.id} index={i} activity={task.activity} allocation={task.allocation} comment={task.comment} handleTaskClick={this.handleTaskClick}/>);
-            i++;
+            rows.push(<DailyTask project={task.project} key={task.id} index={task.id} activity={task.activity} allocation={task.allocation} comment={task.comment} handleTaskClick={this.handleTaskClick}/>);
         }.bind(this));
         return (
             <table>
