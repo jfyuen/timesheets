@@ -512,8 +512,6 @@ var WeeklySummary = React.createClass({
     },
 });
 
-var TASK_ID = 2;
-
 ReactDOM.render(
     <Timetable />,
     // <FilterableProductTable products={PRODUCTS} />,
