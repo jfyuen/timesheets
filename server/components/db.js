@@ -11,9 +11,9 @@ if (!exists) {
 var sqlite3 = require('sqlite3').verbose();
 var db = new sqlite3.Database(file);
 
-db.on('trace', function(q) {
-    console.log(q);
-});
+// db.on('trace', function (q) {
+//     console.log(q);
+// });
 
 var dbWrapper = {
     db: db,
@@ -34,11 +34,6 @@ var dbWrapper = {
                 { id: 2, name: 'BDS' }
             ];
 
-            var activities = [
-                { id: 0, name: 'Activity 1' },
-                { id: 1, name: 'Activity 2' },
-                { id: 2, name: 'Activity 3' }
-            ];
 
             var projects = [
                 { id: 0, name: 'Project 1' },
@@ -46,12 +41,28 @@ var dbWrapper = {
                 { id: 2, name: 'Project 3' }
             ];
 
-            var tablesData = [{ table: 'ACTIVITIES', data: activities }, { table: 'PROJECTS', data: projects }, { table: 'USERS', data: users }]
+            var tablesData = [{ table: 'PROJECTS', data: projects }, { table: 'USERS', data: users }]
             for (var i = 0; i < tablesData.length; i++) {
                 var t = tablesData[i];
                 this.db.run('CREATE TABLE ' + t.table + ' (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL)');
                 this.addToTable(t.table, t.data);
             }
+
+            var activities = [
+                { id: 0, name: 'Activity 1', project_id: 0 },
+                { id: 1, name: 'Activity 2', project_id: 0 },
+                { id: 2, name: 'Activity 3', project_id: 1 },
+                { id: 3, name: 'Activity 3', project_id: 2 },
+            ];
+
+            this.db.run('CREATE TABLE ACTIVITIES (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL, PROJECT_ID INTEGER NOT NULL,\
+                FOREIGN KEY (PROJECT_ID) REFERENCES PROJECTS(ID))');
+            var stmt = db.prepare('INSERT INTO ACTIVITIES(ID, NAME, PROJECT_ID) VALUES (?, ?, ?)');
+            for (var i = 0; i < activities.length; i++) {
+                var row = activities[i];
+                stmt.run(row.id, row.name, row.project_id);
+            }
+            stmt.finalize();
 
             var allocations = [
                 { id: 0, name: '1', value: 1 },
@@ -126,17 +137,14 @@ var dbWrapper = {
             });
     },
     deleteTasks(task_ids, cb) {
-        console.log(task_ids);
         this.db.run('DELETE FROM TASKS where rowid in (?)',
             task_ids,
             function (err) {
-                console.log(err);
                 if (cb) {
                     if (err) {
                         cb(err, null);
                     } else {
-                        console.log(this.changes);
-                        cb(null, { changes: this.changes});
+                        cb(null, { changes: this.changes });
                     }
                 }
             });
@@ -144,20 +152,20 @@ var dbWrapper = {
     getUserTasks(user_id, cb) {
         var results = [];
         this.db.each('SELECT TASKS.rowid as ID, PROJECT_ID, ACTIVITY_ID, TIME_ALLOCATION_ID, DAY, COMMENT FROM TASKS WHERE USER_ID = ?', [user_id], function (err, row) {
-                if (!err) {
-                    var r = {
-                        id: row.ID,
-                        activity_id: row.ACTIVITY_ID,
-                        project_id: row.PROJECT_ID,
-                        allocation_id: row.TIME_ALLOCATION_ID,
-                        comment: row.COMMENT,
-                        date: row.DAY
-                    };
-                    results.push(r);
-                }
-            }, function (err, size) {
-                cb(err, results);
-            });
+            if (!err) {
+                var r = {
+                    id: row.ID,
+                    activity_id: row.ACTIVITY_ID,
+                    project_id: row.PROJECT_ID,
+                    allocation_id: row.TIME_ALLOCATION_ID,
+                    comment: row.COMMENT,
+                    date: row.DAY
+                };
+                results.push(r);
+            }
+        }, function (err, size) {
+            cb(err, results);
+        });
     },
     queryTable: function (table, cb) {
         var results = [];
@@ -186,8 +194,14 @@ var dbWrapper = {
         this.queryTable('PROJECTS', cb);
     },
     getActivities: function (cb) {
-        this.queryTable('ACTIVITIES', cb);
-    },
+        var results = [];
+        this.db.each('SELECT ID, NAME, PROJECT_ID FROM ACTIVITIES order by NAME', function (err, row) {
+            if (!err) {
+                results.push({ id: row.ID, name: row.NAME, project_id: row.PROJECT_ID });
+            }
+        }, function (err, size) {
+            cb(err, results);
+        });    },
     getNonWorkingDays: function (cb) {
         var results = [];
         this.db.each("SELECT DAY FROM NON_WORKING_DAYS order by DAY", function (err, row) {

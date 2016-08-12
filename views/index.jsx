@@ -164,6 +164,7 @@ var Timetable = React.createClass({
             users: {},
             projects: {},
             activities: {},
+            project_activities: { dict: {}, list: [] },
             allocations: {},
             errorMsg: '',
             comment: '',
@@ -215,7 +216,7 @@ var Timetable = React.createClass({
                     <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser}/>
                     <JNTDatePicker date={this.state.today} changeDate={this.changeDate}/>
                     <SelectList values={this.state.projects.list} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
-                    <SelectList values={this.state.activities.list} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
+                    <SelectList values={this.state.project_activities.list} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
                     <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
                     <Comment comment={this.state.comment} updateComment={this.changeComment}/>
                     <div style={{ display: 'table-row' }}>
@@ -260,8 +261,17 @@ var Timetable = React.createClass({
             that.setState({ errorMsg: 'Error in receiving user tasks' + ex });
         });
     },
-    changeProject: function (project_id) {
-        this.setState({ project_id: parseInt(project_id) });
+    changeProject: function (project_id) {        
+        var projectActivities = { list: [] };
+        var activities = this.state.activities.list;
+        for (var i = 0; i < activities.length; i++) {
+            var activity = activities[i];
+            if (activity.project_id == project_id) {
+                projectActivities.list.push(activity);
+            }
+        }
+        projectActivities.dict = arrayToMap(projectActivities.list);
+        this.setState({ project_id: parseInt(project_id), project_activities: projectActivities });
     },
     changeActivity: function (activity_id) {
         this.setState({ activity_id: parseInt(activity_id) });
@@ -280,9 +290,9 @@ var Timetable = React.createClass({
             body: JSON.stringify({
                 task_ids: indexes
             })
-                
+
         }).then(function (response) {
-                        return response.json();
+            return response.json();
         }).then(function (content) {
             var dailyTasks = [];
             var oldTasks = that.dailyTasks();
