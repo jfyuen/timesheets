@@ -99,21 +99,22 @@ var dbWrapper = {
                 TIME_ALLOCATION_ID INTEGER NOT NULL,\
                 ACTIVITY_ID INTEGER NOT NULL,\
                 DAY DATE NOT NULL,\
+                COMMENT TEXT,\
                 FOREIGN KEY (PROJECT_ID) REFERENCES PROJECTS(ID),\
                 FOREIGN KEY (USER_ID) REFERENCES USER(ID),\
                 FOREIGN KEY (TIME_ALLOCATION_ID) REFERENCES TIME_ALLOCATION(ID),\
                 FOREIGN KEY (ACTIVITY_ID) REFERENCES ACTIVITIES(ID))');
-            this.addTask(0, 0, 0, 0, '2016-07-25', null);
-            this.addTask(0, 0, 0, 0, '2016-07-28', null);
-            this.addTask(0, 1, 1, 2, '2016-07-28', null);
+            this.addTask(0, 0, 0, 0, '2016-07-25', '', null);
+            this.addTask(0, 0, 0, 0, '2016-07-28', '', null);
+            this.addTask(0, 1, 1, 2, '2016-07-28', '', null);
         }.bind(this));
     },
     close: function () {
         this.db.close();
     },
-    addTask(user_id, project_id, activity_id, allocation_id, day, cb) {
-        this.db.run('INSERT INTO TASKS(USER_ID, PROJECT_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY) VALUES (?, ?, ?, ?, strftime("%Y-%m-%d", ?))',
-            [user_id, project_id, allocation_id, activity_id, day],
+    addTask(user_id, project_id, activity_id, allocation_id, day, comment, cb) {
+        this.db.run('INSERT INTO TASKS(USER_ID, PROJECT_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY, COMMENT) VALUES (?, ?, ?, ?, strftime("%Y-%m-%d", ?), ?)',
+            [user_id, project_id, allocation_id, activity_id, day, comment],
             function (err) {
                 if (cb) {
                     if (err) {
@@ -126,13 +127,14 @@ var dbWrapper = {
     },
     getUserTasks(user_id, cb) {
         var results = [];
-        this.db.each('SELECT TASKS.rowid as ID, PROJECT_ID, ACTIVITY_ID, TIME_ALLOCATION_ID, DAY FROM TASKS WHERE USER_ID = ?', [user_id], function (err, row) {
+        this.db.each('SELECT TASKS.rowid as ID, PROJECT_ID, ACTIVITY_ID, TIME_ALLOCATION_ID, DAY, COMMENT FROM TASKS WHERE USER_ID = ?', [user_id], function (err, row) {
                 if (!err) {
                     var r = {
                         id: row.ID,
                         activity_id: row.ACTIVITY_ID,
                         project_id: row.PROJECT_ID,
                         allocation_id: row.TIME_ALLOCATION_ID,
+                        comment: row.COMMENT,
                         date: row.DAY
                     };
                     results.push(r);

@@ -250,6 +250,7 @@ var Timetable = React.createClass({
                     activity: that.state.activities.dict[task.activity_id],
                     project: that.state.projects.dict[task.project_id],
                     allocation: that.state.allocations.dict[task.allocation_id],
+                    comment: task.comment,
                     date: task.date
                 });
             }
@@ -319,6 +320,7 @@ var Timetable = React.createClass({
                 project_id: this.state.project_id,
                 activity_id: this.state.activity_id,
                 allocation_id: this.state.allocation_id,
+                comment: this.state.comment,
                 date: today
             })
         }).then(function (response) {
@@ -329,6 +331,7 @@ var Timetable = React.createClass({
                 activity: that.state.activities.dict[that.state.activity_id],
                 project: that.state.projects.dict[that.state.project_id],
                 allocation: that.state.allocations.dict[that.state.allocation_id],
+                comment: that.state.comment,
                 date: today
             });
             that.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
@@ -367,7 +370,7 @@ var DailyTask = React.createClass({
     },
     render: function () {
         return (
-            <tr><td><input type="checkbox" value={this.state.checked} onChange={this.handleClick}/></td><td>{this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td></tr>
+            <tr><td><input type="checkbox" value={this.state.checked} onChange={this.handleClick}/></td><td>{this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td><td>{this.props.comment}</td></tr>
         );
     },
     handleClick: function () {
@@ -387,7 +390,7 @@ var DailySummary = React.createClass({
         var rows = [];
         var i = 0;
         this.props.tasks.forEach(function (task) {
-            rows.push(<DailyTask project={task.project} key={task.id} index={i} activity={task.activity} allocation={task.allocation} handleTaskClick={this.handleTaskClick}/>);
+            rows.push(<DailyTask project={task.project} key={task.id} index={i} activity={task.activity} allocation={task.allocation} comment={task.comment} handleTaskClick={this.handleTaskClick}/>);
             i++;
         }.bind(this));
         return (
@@ -395,7 +398,7 @@ var DailySummary = React.createClass({
                 <caption>Journée en cours</caption>
                 <tbody>
                     <tr>
-                        <th>&nbsp; </th><th>Projet</th><th>Activité</th><th>Temps</th>
+                        <th>&nbsp; </th><th>Projet</th><th>Activité</th><th>Temps</th><th>Remarque</th>
                     </tr>
                     {rows}
                     <tr><td colSpan="4"><input type="button" value="Effacer les tâches" onClick={this.deleteTasks}/></td></tr>

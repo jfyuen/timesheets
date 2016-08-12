@@ -23,8 +23,9 @@ router.route('/:id/tasks')
         var project_id = req.body.project_id,
             activity_id = req.body.activity_id,
             allocation_id = req.body.allocation_id,
+            comment = req.body.comment,
             day = req.body.date;
-        db.addTask(id, project_id, activity_id, allocation_id, day, function (err, results) {
+        db.addTask(id, project_id, activity_id, allocation_id, day, comment, function (err, results) {
             if (err) {
                 res.status(500).json(err);
             } else {
