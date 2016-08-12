@@ -7,14 +7,20 @@ const path = require('path'),
     db = require('./components/db');
 
 var app = express();
+var bodyParser = require('body-parser');
 
 app.use(express.static(path.join(config.root, 'static')));
+app.use(bodyParser.json());       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+    extended: true
+}));
 
 require('./components').init(app, function (err) {
-
     if (err) {
         console.log(err);
     } else {
+        // app.use(express.json());       // to support JSON-encoded bodies
+        // app.use(express.urlencoded()); // to support URL-encoded bodies
         app.listen(config.port, config.ip, function () {
             console.info('Express server listening on %d, in %s mode', config.port, config.env)
         });

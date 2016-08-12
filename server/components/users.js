@@ -18,22 +18,27 @@ router.route('/')
     });
 
 router.route('/:id/tasks')
-    .put()
+    .post(function (req, res) {
+        var id = parseInt(req.params['id']);
+        var project_id = req.body.project_id,
+            activity_id = req.body.activity_id,
+            allocation_id = req.body.allocation_id,
+            day = req.body.date;
+        db.addTask(id, project_id, activity_id, allocation_id, day, function (err, results) {
+            if (err) {
+                res.status(500).json(err);
+            } else {
+                res.status(200).json(results);
+            }
+        });
+    })
     .get(function (req, res) {
-        var id = req.params['id'];
+        var id = parseInt(req.params['id']);
         db.getUserTasks(id, function (err, results) {
             if (err) {
                 res.status(500).json(err);
             } else {
-                var content = {}
-                for (var i = 0; i < results.length; i++) {
-                    var task = results[i];
-                    if (!(task.date in content)) {
-                        content[task.date] = [];
-                    }
-                    content[task.date].push(task);
-                }
-                res.status(200).json(content);
+                res.status(200).json(results);
             }
         });
     });

@@ -239,7 +239,21 @@ var Timetable = React.createClass({
         fetch('/users/' + user_id + '/tasks').then(function (response) {
             return response.json();
         }).then(function (content) {
-            that.setState({ user_id: parseInt(user_id), weeklyTasks: content });
+            var weeklyTasks = {};
+            for (var i = 0; i < content.length; i++) {
+                var task = content[i];
+                if (!(task.date in weeklyTasks)) {
+                    weeklyTasks[task.date] = [];
+                }
+                weeklyTasks[task.date].push({
+                    id: task.id,
+                    activity: that.state.activities.dict[task.activity_id],
+                    project: that.state.projects.dict[task.project_id],
+                    allocation: that.state.allocations.dict[task.allocation_id],
+                    date: task.date
+                });
+            }
+            that.setState({ user_id: parseInt(user_id), weeklyTasks: weeklyTasks });
         }).catch(function (ex) {
             console.log(ex);
             that.setState({ errorMsg: 'Error in receiving user tasks' + ex });
@@ -294,16 +308,35 @@ var Timetable = React.createClass({
 
         if (!(today in weeklyTasks))
             weeklyTasks[today] = [];
-        TASK_ID++; // TODO: get a real taskID from the server
-        weeklyTasks[today].push({
-            id: TASK_ID,
-            activity: this.state.activities.dict[this.state.activity_id],
-            project: this.state.projects.dict[this.state.project_id],
-            allocation: this.state.allocations.dict[this.state.allocation_id],
-            date: today
+        var that = this;
+        fetch('/users/' + this.state.user_id + '/tasks', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                project_id: this.state.project_id,
+                activity_id: this.state.activity_id,
+                allocation_id: this.state.allocation_id,
+                date: today
+            })
+        }).then(function (response) {
+            return response.json();
+        }).then(function (content) {
+            weeklyTasks[today].push({
+                id: content.id,
+                activity: that.state.activities.dict[that.state.activity_id],
+                project: that.state.projects.dict[that.state.project_id],
+                allocation: that.state.allocations.dict[that.state.allocation_id],
+                date: today
+            });
+            that.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
+        }).catch(function (ex) {
+            console.log('parsing failed', ex)
         });
-        this.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
     },
+    // TODO: to be check on the server
     computeDailyWorkedTime: function (today) {
         var dailyWorkedTime = 0;
 

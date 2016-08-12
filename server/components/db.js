@@ -113,24 +113,26 @@ var dbWrapper = {
     },
     addTask(user_id, project_id, activity_id, allocation_id, day, cb) {
         this.db.run('INSERT INTO TASKS(USER_ID, PROJECT_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY) VALUES (?, ?, ?, ?, strftime("%Y-%m-%d", ?))',
-            [user_id, project_id, activity_id, allocation_id, day],
-            function (err, size) {
+            [user_id, project_id, allocation_id, activity_id, day],
+            function (err) {
                 if (cb) {
-                    cb(err, results);
+                    if (err) {
+                        cb(err, null);
+                    } else {
+                        cb(null, { id: this.lastID });
+                    }
                 }
             });
     },
     getUserTasks(user_id, cb) {
         var results = [];
-        this.db.each('SELECT TASKS.rowid as ID, PROJECT_ID, p.NAME as PROJECT, ACTIVITY_ID, a.NAME as ACTIVITY, t.NAME as ALLOCATION_NAME, TIME_ALLOCATION_ID, t.VALUE as ALLOCATION_VALUE, DAY FROM\
-            TASKS, PROJECTS p, TIME_ALLOCATION t, ACTIVITIES a\
-            WHERE TASKS.PROJECT_ID = p.ID AND TASKS.ACTIVITY_ID = a.ID and TASKS.TIME_ALLOCATION_ID = t.ID and TASKS.USER_ID = ?', [user_id], function (err, row) {
+        this.db.each('SELECT TASKS.rowid as ID, PROJECT_ID, ACTIVITY_ID, TIME_ALLOCATION_ID, DAY FROM TASKS WHERE USER_ID = ?', [user_id], function (err, row) {
                 if (!err) {
                     var r = {
                         id: row.ID,
-                        activity: { id: row.ACTIVITY_ID, name: row.ACTIVITY },
-                        project: { id: row.PROJECT_ID, name: row.PROJECT },
-                        allocation: { id: row.ALLOCATION_ID, name: row.ALLOCATION_NAME, value: row.ALLOCATION_VALUE },
+                        activity_id: row.ACTIVITY_ID,
+                        project_id: row.PROJECT_ID,
+                        allocation_id: row.TIME_ALLOCATION_ID,
                         date: row.DAY
                     };
                     results.push(r);
