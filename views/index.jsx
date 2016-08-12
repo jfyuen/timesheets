@@ -345,7 +345,6 @@ var Timetable = React.createClass({
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                project_id: this.state.project_id,
                 activity_id: this.state.activity_id,
                 allocation_id: this.state.allocation_id,
                 comment: this.state.comment,

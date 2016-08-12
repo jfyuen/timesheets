@@ -106,27 +106,25 @@ var dbWrapper = {
             stmt.finalize();
 
             this.db.run('CREATE TABLE TASKS (\
-                PROJECT_ID INTEGER NOT NULL, \
                 USER_ID INTEGER NOT NULL,\
                 TIME_ALLOCATION_ID INTEGER NOT NULL,\
                 ACTIVITY_ID INTEGER NOT NULL,\
                 DAY DATE NOT NULL,\
                 COMMENT TEXT,\
-                FOREIGN KEY (PROJECT_ID) REFERENCES PROJECTS(ID),\
                 FOREIGN KEY (USER_ID) REFERENCES USER(ID),\
                 FOREIGN KEY (TIME_ALLOCATION_ID) REFERENCES TIME_ALLOCATION(ID),\
                 FOREIGN KEY (ACTIVITY_ID) REFERENCES ACTIVITIES(ID))');
-            this.addTask(0, 0, 0, 0, '2016-07-25', '', null);
-            this.addTask(0, 0, 0, 0, '2016-07-28', '', null);
-            this.addTask(0, 1, 1, 2, '2016-07-28', '', null);
+            this.addTask(0, 0, 0, '2016-07-25', '', null);
+            this.addTask(0, 0, 0, '2016-07-28', '', null);
+            this.addTask(0, 1, 2, '2016-07-28', '', null);
         }.bind(this));
     },
     close: function () {
         this.db.close();
     },
-    addTask(user_id, project_id, activity_id, allocation_id, day, comment, cb) {
-        this.db.run('INSERT INTO TASKS(USER_ID, PROJECT_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY, COMMENT) VALUES (?, ?, ?, ?, strftime("%Y-%m-%d", ?), ?)',
-            [user_id, project_id, allocation_id, activity_id, day, comment],
+    addTask(user_id, activity_id, allocation_id, day, comment, cb) {
+        this.db.run('INSERT INTO TASKS(USER_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY, COMMENT) VALUES (?, ?, ?, strftime("%Y-%m-%d", ?), ?)',
+            [user_id, allocation_id, activity_id, day, comment],
             function (err) {
                 if (cb) {
                     if (err) {
@@ -152,7 +150,7 @@ var dbWrapper = {
     },
     getUserTasks(user_id, cb) {
         var results = [];
-        this.db.each('SELECT TASKS.rowid as ID, PROJECT_ID, ACTIVITY_ID, TIME_ALLOCATION_ID, DAY, COMMENT FROM TASKS WHERE USER_ID = ?', [user_id], function (err, row) {
+        this.db.each('SELECT TASKS.rowid as ID, PROJECT_ID, ACTIVITY_ID, TIME_ALLOCATION_ID, DAY, COMMENT FROM TASKS, ACTIVITIES WHERE USER_ID = ? AND TASKS.ACTIVITY_ID = ACTIVITIES.ID', [user_id], function (err, row) {
             if (!err) {
                 var r = {
                     id: row.ID,
