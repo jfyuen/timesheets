@@ -19,8 +19,6 @@ require('./components').init(app, function (err) {
     if (err) {
         console.log(err);
     } else {
-        // app.use(express.json());       // to support JSON-encoded bodies
-        // app.use(express.urlencoded()); // to support URL-encoded bodies
         app.listen(config.port, config.ip, function () {
             console.info('Express server listening on %d, in %s mode', config.port, config.env)
         });
