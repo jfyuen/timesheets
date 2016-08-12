@@ -17,11 +17,6 @@ router.route('/')
         });
     });
 
-router.route('/:id')
-    .put()
-    .delete()
-    .get();
-
 module.exports = router
 
 

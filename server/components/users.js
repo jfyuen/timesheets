@@ -17,11 +17,6 @@ router.route('/')
         });
     });
 
-router.route('/:id')
-    .put()
-    .delete()
-    .get();
-
 router.route('/:id/tasks')
     .put()
     .get(function (req, res) {
