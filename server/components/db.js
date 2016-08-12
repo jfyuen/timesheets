@@ -1,5 +1,6 @@
 var fs = require('fs');
-var file = process.cwd() + '/' + 'timesheets.db';
+var config = require('../config');
+var file = config.dbPath + '/' + 'timesheets.db';
 var exists = fs.existsSync(file);
 var moment = require('moment');
 
