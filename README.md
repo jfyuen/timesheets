@@ -10,7 +10,7 @@ Before anything, install dependencies with `npm install`.
 ### Production
 
 ```bash
-$ npm run server
+$ npm start
 ```
 
 ### Development

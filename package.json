@@ -27,8 +27,8 @@
   },
   "scripts": {
     "webpack-watch": "webpack -w",
-    "server": "node ./server/index.js",
-    "dev": "concurrently --kill-others \"npm run webpack-watch\" \"npm run server\"",
+    "start": "(test -f static/bundle.js || webpack) && node ./server/index.js",
+    "dev": "concurrently --kill-others \"npm run webpack-watch\" \"npm start\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
