@@ -1,0 +1,11 @@
+*.log
+npm-debug.log*
+node_modules
+jspm_packages
+.npm
+static/bundle.js
+.DS_Store
+.vscode
+timesheets.iml
+.idea
+*.db
