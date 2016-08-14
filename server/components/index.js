@@ -8,13 +8,20 @@ var projects = require('./projects'),
     jnt = require('./jnt'),
     tasks = require('./tasks');
 
+function nocache(req, res, next) {
+    res.header('Cache-Control', 'private, no-cache, no-store, must-revalidate');
+    res.header('Expires', '-1');
+    res.header('Pragma', 'no-cache');
+    next();
+}
+
 module.exports.init = function (app, callback) {
-    app.use('/projects', projects);
-    app.use('/activities', activities);
-    app.use('/allocations', allocations);
-    app.use('/users', users);
-    app.use('/jnt', jnt),
-    app.use('/tasks', tasks);
+    app.use('/projects', nocache, projects);
+    app.use('/activities', nocache, activities);
+    app.use('/allocations', nocache, allocations);
+    app.use('/users', nocache, users);
+    app.use('/jnt', nocache, jnt),
+    app.use('/tasks', nocache, tasks);
 
     callback()
 };
