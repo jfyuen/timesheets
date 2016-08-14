@@ -138,24 +138,28 @@ var Timetable = React.createClass({
                 console.log('error in async parrallel', err);
                 that.setState({ errorMsg: err });
             } else {
-            
-            var jntJson = results['jnts'];
-            
+
+                var jntJson = results['jnts'];
+
                 var jnts = [];
                 for (var i = 0; i < jntJson.length; i++) {
                     var day = moment(jntJson[i], 'YYYY-MM-DD');
                     jnts.push(day);
                 }
-            
+
                 delete results['jnts'];
-                var state = {jnts: jnts}
+                var state = { jnts: jnts }
                 for (var k in results) {
                     state[k] = {};
                     state[k]['dict'] = arrayToMap(results[k]);
                     state[k]['list'] = results[k];
                 }
-            
                 that.setState(state);
+
+                if (!that.isWorkingDay(that.state.today)) {
+                    today = that.nextDay();
+                    that.setState({ today: today });
+                }
             }
         });
     },
@@ -179,11 +183,11 @@ var Timetable = React.createClass({
                     <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
                     <Comment comment={this.state.comment} updateComment={this.changeComment}/>
                     <div style={{ display: 'table-row' }}>
-                    <div style={{ display: 'table-cell' }}>
-                        <input type='button' onClick={this.addTask} value='Ajouter cette tâche'/>
+                        <div style={{ display: 'table-cell' }}>
+                            <input type='button' onClick={this.addTask} value='Ajouter cette tâche'/>
                         </div>
                         <div style={{ display: 'table-cell' }}>
-                        <input type='button' onClick={this.addTaskAndNextDay} value='Ajouter cette tâche et aller au prochain jour'/>
+                            <input type='button' onClick={this.addTaskAndNextDay} value='Ajouter cette tâche et aller au prochain jour'/>
                         </div>
                     </div>
                 </form>
