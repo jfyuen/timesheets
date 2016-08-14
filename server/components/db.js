@@ -123,7 +123,7 @@ var dbWrapper = {
     close: function () {
         this.db.close();
     },
-    addTask(user_id, activity_id, allocation_id, day, comment, cb) {
+    addTask: function (user_id, activity_id, allocation_id, day, comment, cb) {
         this.db.run('INSERT INTO TASKS(USER_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY, COMMENT) VALUES (?, ?, ?, strftime("%Y-%m-%d", ?), ?)',
             [user_id, allocation_id, activity_id, day, comment],
             function (err) {
@@ -136,7 +136,7 @@ var dbWrapper = {
                 }
             });
     },
-    deleteTasks(task_ids, cb) {
+    deleteTasks: function (task_ids, cb) {
         this.db.run('DELETE FROM TASKS where rowid in (?)',
             task_ids,
             function (err) {
@@ -149,7 +149,7 @@ var dbWrapper = {
                 }
             });
     },
-    getUserTasks(user_id, cb) {
+    getUserTasks: function (user_id, cb) {
         var results = [];
         this.db.each('SELECT TASKS.rowid as ID, PROJECT_ID, ACTIVITY_ID, TIME_ALLOCATION_ID, DAY, COMMENT FROM TASKS, ACTIVITIES WHERE USER_ID = ? AND TASKS.ACTIVITY_ID = ACTIVITIES.ID', [user_id], function (err, row) {
             if (!err) {
@@ -201,7 +201,8 @@ var dbWrapper = {
             }
         }, function (err, size) {
             cb(err, results);
-        });    },
+        });
+    },
     getNonWorkingDays: function (cb) {
         var results = [];
         this.db.each("SELECT DAY FROM NON_WORKING_DAYS order by DAY", function (err, row) {
