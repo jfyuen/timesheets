@@ -25,6 +25,6 @@ $ npm run dev
 Use the bundled `Dockerfile`, change `${DB_PATH}` and `${USER}` to suits your needs.
 
 ```bash
-$ docker build -t ${USER}/timesheets
+$ docker build -t ${USER}/timesheets .
 $ docker run -p 8080:8080 -v ${DB_PATH}:/data -d ${USER}/timesheets
 ```
