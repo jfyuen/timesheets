@@ -192,6 +192,8 @@ var Timetable = React.createClass({
                 <DailySummary tasks={dailyTasks} deleteTasks={this.deleteDailyTasks}/>
                 <hr/>
                 <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today}/>
+                <hr/>
+                <a download='tasks.csv' href='/tasks'>Télécharger en csv</a>
             </div>
         );
     },

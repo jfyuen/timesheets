@@ -136,6 +136,24 @@ var dbWrapper = {
                 }
             });
     },
+    getAllTasks: function (cb) {
+        var results = [];
+        this.db.each('SELECT p.NAME as PROJECT, a.NAME as ACTIVITY, t.VALUE as TIME, DAY, u.NAME as USER, COMMENT FROM TASKS, ACTIVITIES a, PROJECTS p, USERS u, TIME_ALLOCATION t WHERE TASKS.ACTIVITY_ID = a.ID AND a.PROJECT_ID = p.ID AND TASKS.USER_ID = u.ID AND TASKS.TIME_ALLOCATION_ID = t.ID ORDER BY DAY, USER', function (err, row) {
+            if (!err) {
+                var r = {
+                    project: row.PROJECT,
+                    activity: row.ACTIVITY,
+                    time: row.TIME,
+                    date: row.DAY,
+                    user: row.USER,
+                    comment: row.COMMENT,
+                };
+                results.push(r);
+            }
+        }, function (err, size) {
+            cb(err, results);
+        });
+    },
     deleteTasks: function (task_ids, cb) {
         this.db.run('DELETE FROM TASKS where rowid in (?)',
             task_ids,
