@@ -55,74 +55,17 @@ function isWeekday(d) {
 }
 
 var JNTDatePicker = React.createClass({
-    getInitialState: function () {
-        return {
-            jnts: [],
-        };
-    },
-    componentDidMount: function () {
-        var that = this;
-        var jnts = [];
-        fetch('/jnt').then(function (response) {
-            return response.json();
-        }).then(function (content) {
-            for (var i = 0; i < content.length; i++) {
-                var day = moment(content[i], 'YYYY-MM-DD');
-                jnts.push(day);
-            }
-
-            that.setState({
-                jnts: jnts
-            });
-        }).catch(function (ex) {
-            console.log('parsing failed', ex)
-        });
-    },
-
-    componentWillUnmount: function () {
-        // Cannot cancel a fetch request: https://github.com/whatwg/fetch/issues/27
-        // this.serverRequest.abort(); // with jquery example: https://facebook.github.io/react/tips/initial-ajax.html
-    },
-
     render: function () {
         return (
             <div className='jnt-picker'>
                 <label htmlFor='date' >Date</label>
                 <div style={{ display: 'table-cell' }} >
-                    <DatePicker selected={this.props.date} onChange={this.handleChange} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='en-gb'  excludeDates={this.state.jnts}/>
-
-                    <input type='button' onClick={this.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
-                    <input type='button' onClick={this.nextDay} value='Jour suivant'  className="button" style={{ display: 'table-cell' }}/>
+                    <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='en-gb' excludeDates={this.props.jnts}/>
+                    <input type='button' onClick={this.props.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
+                    <input type='button' onClick={this.props.nextDay} value='Jour suivant'  className="button" style={{ display: 'table-cell' }}/>
                 </div>
             </div>
         );
-    },
-
-    isWorkingDay: function (d) {
-        for (var i = 0; i < this.state.jnts.length; i++) {
-            if (this.state.jnts[i].format('YYYY-MM-DD') == d.format('YYYY-MM-DD')) {
-                return false;
-            }
-        }
-        return isWeekday(d);
-    },
-
-    previousDay: function () {
-        var d = this.props.date.clone().add(-1, 'day');
-        while (!this.isWorkingDay(d)) {
-            d.add(-1, 'day');
-        }
-        this.props.changeDate(d);
-    },
-    nextDay: function () {
-        var d = this.props.date.clone().add(1, 'day');
-        while (!this.isWorkingDay(d)) {
-            d.add(1, 'day');
-        }
-        this.props.changeDate(d);
-    },
-    handleChange: function (d) {
-        this.props.changeDate(d);
     },
 });
 
@@ -168,6 +111,7 @@ var Timetable = React.createClass({
             allocations: {},
             errorMsg: '',
             comment: '',
+            jnts: [],
         };
     },
     componentDidMount: function () {
@@ -185,17 +129,32 @@ var Timetable = React.createClass({
             users: function (cb) {
                 fetcher('/users', cb);
             },
+            jnts: function (cb) {
+                fetcher('/jnt', cb);
+            }
         }, function (err, results) {
+
             if (err) {
                 console.log('error in async parrallel', err);
                 that.setState({ errorMsg: err });
             } else {
-                var state = {}
+            
+            var jntJson = results['jnts'];
+            
+                var jnts = [];
+                for (var i = 0; i < jntJson.length; i++) {
+                    var day = moment(jntJson[i], 'YYYY-MM-DD');
+                    jnts.push(day);
+                }
+            
+                delete results['jnts'];
+                var state = {jnts: jnts}
                 for (var k in results) {
                     state[k] = {};
                     state[k]['dict'] = arrayToMap(results[k]);
                     state[k]['list'] = results[k];
                 }
+            
                 that.setState(state);
             }
         });
@@ -214,13 +173,18 @@ var Timetable = React.createClass({
             <div>
                 <form className='task-table'>
                     <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser}/>
-                    <JNTDatePicker date={this.state.today} changeDate={this.changeDate}/>
+                    <JNTDatePicker date={this.state.today} previousDay={this.previousDay} nextDay={this.nextDay} jnts={this.state.jnts}/>
                     <SelectList values={this.state.projects.list} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
                     <SelectList values={this.state.project_activities.list} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
                     <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
                     <Comment comment={this.state.comment} updateComment={this.changeComment}/>
                     <div style={{ display: 'table-row' }}>
-                        <input type='button' onClick={this.addTask} value='Ajouter cette tâche'  style={{ display: 'table-cell' }}/>
+                    <div style={{ display: 'table-cell' }}>
+                        <input type='button' onClick={this.addTask} value='Ajouter cette tâche'/>
+                        </div>
+                        <div style={{ display: 'table-cell' }}>
+                        <input type='button' onClick={this.addTaskAndNextDay} value='Ajouter cette tâche et aller au prochain jour'/>
+                        </div>
                     </div>
                 </form>
                 <div className='error'>{this.state.errorMsg}</div>
@@ -230,6 +194,30 @@ var Timetable = React.createClass({
                 <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today}/>
             </div>
         );
+    },
+
+    isWorkingDay: function (d) {
+        for (var i = 0; i < this.state.jnts.length; i++) {
+            if (this.state.jnts[i].format('YYYY-MM-DD') == d.format('YYYY-MM-DD')) {
+                return false;
+            }
+        }
+        return isWeekday(d);
+    },
+
+    previousDay: function () {
+        var d = this.state.today.clone().add(-1, 'day');
+        while (!this.isWorkingDay(d)) {
+            d.add(-1, 'day');
+        }
+        this.changeDate(d);
+    },
+    nextDay: function () {
+        var d = this.state.today.clone().add(1, 'day');
+        while (!this.isWorkingDay(d)) {
+            d.add(1, 'day');
+        }
+        this.changeDate(d);
     },
     changeComment: function (e) {
         this.setState({ comment: e.target.value });
@@ -314,7 +302,10 @@ var Timetable = React.createClass({
     changeDate: function (d) {
         this.setState({ today: d, errorMsg: '' });
     },
-    addTask: function () {
+    addTaskAndNextDay: function () {
+        this.addTask(this.nextDay);
+    },
+    addTask: function (cb) {
         if (!isWeekday(this.state.today)) {
             this.setState({ errorMsg: 'Veuillez sélectionner un jour de la semaine entre lundi et vendredi.' });
             return;
@@ -362,6 +353,9 @@ var Timetable = React.createClass({
                 date: today
             });
             that.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
+            if (cb) {
+                cb();
+            }
         }).catch(function (ex) {
             console.log('parsing failed', ex)
         });
