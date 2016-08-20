@@ -177,7 +177,7 @@ var Timetable = React.createClass({
             <div>
                 <form className='task-table'>
                     <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser}/>
-                    <JNTDatePicker date={this.state.today} previousDay={this.previousDay} nextDay={this.nextDay} jnts={this.state.jnts}/>
+                    <JNTDatePicker date={this.state.today} previousDay={this.previousDay} nextDay={this.nextDay} jnts={this.state.jnts} changeDate={this.changeDate}/>
                     <SelectList values={this.state.projects.list} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
                     <SelectList values={this.state.project_activities.list} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
                     <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
