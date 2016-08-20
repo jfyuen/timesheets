@@ -67,3 +67,7 @@ th {
 .daily-sumup {
     min-width: 400px;
 }
+
+.selected {
+    background-color: yellow;
+}

@@ -507,7 +507,11 @@ var WeeklySummary = React.createClass({
             var s = parseInt(i);
             var workingDay = this.props.isWorkingDay(dates[i]);
             totalCells.push(<TotalCell total={sumDays[s]} key={'totalCell' + s} workingDay={workingDay}/>);
-            dateNames.push(<th key={'date' + s}>{dates[i].format('dddd (DD/MM)')}</th>);
+            var selectedCss = '';
+            if (dates[i].format('YYYY-MM-DD') == this.props.date.format('YYYY-MM-DD')) {
+                selectedCss = 'selected';
+            }
+            dateNames.push(<th key={'date' + s} className={selectedCss}>{dates[i].format('dddd (DD/MM)')}</th>);
             if (workingDay) {
                 workingDaysInWeek++;
             }
