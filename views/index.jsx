@@ -195,7 +195,7 @@ var Timetable = React.createClass({
                 <hr/>
                 <DailySummary tasks={dailyTasks} deleteTasks={this.deleteDailyTasks} date={this.state.today}/>
                 <hr/>
-                <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today}/>
+                <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today} isWorkingDay={this.isWorkingDay}/>
                 <hr/>
                 <a download='tasks.csv' href='/tasks'>Télécharger en csv</a>
             </div>
@@ -502,15 +502,20 @@ var WeeklySummary = React.createClass({
 
         var totalCells = [];
         var dateNames = []
+        var workingDaysInWeek = 0;
         for (var i = 0; i < 5; i++) {
             var s = parseInt(i);
-            totalCells.push(<TotalCell total={sumDays[s]} key={'totalCell' + s}/>);
-            dateNames.push(<th key={'date' + s}>{dates[i].format('dddd (DD/MM)')}</th>)
+            var workingDay = this.props.isWorkingDay(dates[i]);
+            totalCells.push(<TotalCell total={sumDays[s]} key={'totalCell' + s} workingDay={workingDay}/>);
+            dateNames.push(<th key={'date' + s}>{dates[i].format('dddd (DD/MM)')}</th>);
+            if (workingDay) {
+                workingDaysInWeek++;
+            }
         }
 
 
 
-        var totalCss = total == 5 ? 'green' : 'grey';
+        var totalCss = total == workingDaysInWeek ? 'green' : 'grey';
         return (
             <table>
                 <caption>Semaine en cours</caption>
@@ -519,7 +524,7 @@ var WeeklySummary = React.createClass({
                         <th>Projet</th><th>Activité</th>{dateNames}<th>Total</th>
                     </tr>
                     {rows}
-                    <tr><td colSpan='2'><strong>Total</strong></td>{totalCells}<td className={totalCss}>{total}</td></tr>
+                    <tr><td colSpan='2'><strong>Total</strong></td>{totalCells}<td className={totalCss}>{total} / {workingDaysInWeek}</td></tr>
                 </tbody>
             </table>
         );
@@ -528,9 +533,14 @@ var WeeklySummary = React.createClass({
 
 var TotalCell = React.createClass({
     render: function () {
-        var css = this.props.total == 1 ? 'green' : 'grey';
+        var css = '';
+        var total = '';
+        if (this.props.workingDay) {
+            total = this.props.total;
+            css = this.props.total == 1 ? 'green' : 'grey';
+        }
         return (
-            <td className={css}>{this.props.total}</td>
+            <td className={css}>{total}</td>
         );
     }
 });
