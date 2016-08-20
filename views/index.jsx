@@ -193,7 +193,7 @@ var Timetable = React.createClass({
                 </form>
                 <div className='error'>{this.state.errorMsg}</div>
                 <hr/>
-                <DailySummary tasks={dailyTasks} deleteTasks={this.deleteDailyTasks}/>
+                <DailySummary tasks={dailyTasks} deleteTasks={this.deleteDailyTasks} date={this.state.today}/>
                 <hr/>
                 <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today}/>
                 <hr/>
@@ -420,8 +420,8 @@ var DailySummary = React.createClass({
         }.bind(this));
         return (
             <div>
-                <table>
-                    <caption>Journée en cours</caption>
+                <table className='daily-sumup'>
+                    <caption>Journée en cours: {this.props.date.format('dddd, MMMM DD YYYY')}</caption>
                     <tbody>
                         <tr>
                             <th>Projet</th><th>Activité</th><th>Temps</th><th>Remarque</th>

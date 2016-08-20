@@ -63,3 +63,7 @@ th {
 .grey {
     background-color: grey;
 }
+
+.daily-sumup {
+    min-width: 400px;
+}
