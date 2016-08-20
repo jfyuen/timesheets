@@ -58,7 +58,7 @@ var JNTDatePicker = React.createClass({
     render: function () {
         return (
             <div className='jnt-picker'>
-                <label htmlFor='date' >Date</label>
+                <label htmlFor='date' >Date ({this.props.date.format('dddd')})</label>
                 <div style={{ display: 'table-cell' }} >
                     <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='en-gb' excludeDates={this.props.jnts}/>
                     <input type='button' onClick={this.props.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
