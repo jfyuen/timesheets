@@ -463,8 +463,9 @@ var WeeklySummary = React.createClass({
         var dates = []
         for (var i = 0; i < 5; i++) {
             sumDays[i] = 0;
-            var date = this.props.date.clone().add(i - dow, 'day').format('YYYY-MM-DD');
-            dates.push(date);
+            var d = this.props.date.clone().add(i - dow, 'day');
+            dates.push(d);
+            var date = d.format('YYYY-MM-DD');
             if (date in this.props.tasks) {
 
                 var dailyProject = this.props.tasks[date];
@@ -492,7 +493,7 @@ var WeeklySummary = React.createClass({
                 var columns = [];
                 for (var i = 0; i < 5; i++) {
                     var task = projects[p][activity][i];
-                    var taskKey = parseInt(task.id) + dates[i];
+                    var taskKey = parseInt(task.id) + dates[i].format('YYYY-MM-DD');
                     columns.push(<td key={taskKey}>{task.allocation.name}</td>);
                 }
                 rows.push(<tr key={key}><td>{p}</td><td>{activity}</td>{columns}<td></td></tr>);
@@ -500,10 +501,14 @@ var WeeklySummary = React.createClass({
         }
 
         var totalCells = [];
+        var dateNames = []
         for (var i = 0; i < 5; i++) {
             var s = parseInt(i);
             totalCells.push(<TotalCell total={sumDays[s]} key={'totalCell' + s}/>);
+            dateNames.push(<th key={'date' + s}>{dates[i].format('dddd (DD/MM)')}</th>)
         }
+
+
 
         var totalCss = total == 5 ? 'green' : 'grey';
         return (
@@ -511,7 +516,7 @@ var WeeklySummary = React.createClass({
                 <caption>Semaine en cours</caption>
                 <tbody>
                     <tr>
-                        <th>Projet</th><th>Activité</th><th>Lundi</th><th>Mardi</th><th>Mercredi</th><th>Jeudi</th><th>Vendredi</th><th>Total</th>
+                        <th>Projet</th><th>Activité</th>{dateNames}<th>Total</th>
                     </tr>
                     {rows}
                     <tr><td colSpan='2'><strong>Total</strong></td>{totalCells}<td className={totalCss}>{total}</td></tr>
