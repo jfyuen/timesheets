@@ -5,7 +5,7 @@ require('babel-register')
 var React = require('react');
 var ReactDOM = require('react-dom');
 var moment = require('moment');
-moment.locale('en-gb');
+moment.locale('fr');
 var DatePicker = require('react-datepicker');
 var async = require('async');
 require('../static/css/style.css');
@@ -60,7 +60,7 @@ var JNTDatePicker = React.createClass({
             <div className='jnt-picker'>
                 <label htmlFor='date' >Date ({this.props.date.format('dddd')})</label>
                 <div style={{ display: 'table-cell' }} >
-                    <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='en-gb' excludeDates={this.props.jnts}/>
+                    <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='fr' excludeDates={this.props.jnts}/>
                     <input type='button' onClick={this.props.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
                     <input type='button' onClick={this.props.nextDay} value='Jour suivant'  className="button" style={{ display: 'table-cell' }}/>
                 </div>
@@ -421,7 +421,7 @@ var DailySummary = React.createClass({
         return (
             <div>
                 <table className='daily-sumup'>
-                    <caption>Journée en cours: {this.props.date.format('dddd, MMMM DD YYYY')}</caption>
+                    <caption>Journée en cours: {this.props.date.format('dddd DD MMMM YYYY')}</caption>
                     <tbody>
                         <tr>
                             <th>Projet</th><th>Activité</th><th>Temps</th><th>Remarque</th>
