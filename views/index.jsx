@@ -9,8 +9,10 @@ moment.locale('fr');
 var DatePicker = require('react-datepicker');
 var async = require('async');
 require('../static/css/style.css');
+require('../static/css/react-yearly-calendar.css');
 require('react-datepicker/dist/react-datepicker.css');
 require('whatwg-fetch');
+var {Calendar, CalendarControls} = require('react-yearly-calendar');
 
 var Option = React.createClass({
     render: function () {
@@ -58,7 +60,7 @@ var JNTDatePicker = React.createClass({
     render: function () {
         return (
             <div className='jnt-picker'>
-                <label htmlFor='date' >Date ({this.props.date.format('dddd')})</label>
+                <label htmlFor='date' >Date ({this.props.date.format('dddd') }) </label>
                 <div style={{ display: 'table-cell' }} >
                     <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='fr' excludeDates={this.props.jnts}/>
                     <input type='button' onClick={this.props.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
@@ -172,7 +174,7 @@ var Timetable = React.createClass({
     },
     render: function () {
         var dailyTasks = this.dailyTasks();
-
+        var that = this;
         return (
             <div>
                 <form className='task-table'>
@@ -197,11 +199,40 @@ var Timetable = React.createClass({
                 <hr/>
                 <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today} isWorkingDay={this.isWorkingDay}/>
                 <hr/>
+                <div id='demo'>
+                    <div id='calendar'>
+                        <CalendarControls
+                            year={this.state.today.year() }
+                            showTodayButton={true}
+                            //onPrevYear={() => this.onPrevYear()}
+                            //onNextYear={() => this.onNextYear()}
+                            goToToday={this.goToToday}/>
+                        <Calendar year={this.state.today.year() } onPickDate={this.changeDate} selectedDay={this.state.today} customClasses={function(d) {return that.getWorkingDayCss(d)}}/>
+                    </div>
+                </div>
+                <hr/>
                 <a download='tasks.csv' href='/tasks'>Télécharger en csv</a>
             </div>
         );
     },
-
+    goToToday: function () {
+        this.changeDate(moment());
+    },
+    getWorkingDayCss: function (d) {
+        if (this.isWorkingDay(d)) {
+            var dStr = d.format('YYYY-MM-DD');
+            if (!(dStr in this.state.weeklyTasks)) {
+                return '';
+            }
+            var tasks = this.state.weeklyTasks[dStr];
+            var total = 0;
+            for (var i = 0; i < tasks.length; i++) {
+                total += tasks[i].allocation.value;
+            }
+            return total == 1 ? 'day-ok' : '';
+        }
+        return 'jnt';
+    },
     isWorkingDay: function (d) {
         for (var i = 0; i < this.state.jnts.length; i++) {
             if (this.state.jnts[i].format('YYYY-MM-DD') == d.format('YYYY-MM-DD')) {
@@ -421,7 +452,7 @@ var DailySummary = React.createClass({
         return (
             <div>
                 <table className='daily-sumup'>
-                    <caption>Journée en cours: {this.props.date.format('dddd DD MMMM YYYY')}</caption>
+                    <caption>Journée en cours: {this.props.date.format('dddd DD MMMM YYYY') }</caption>
                     <tbody>
                         <tr>
                             <th>Projet</th><th>Activité</th><th>Temps</th><th>Remarque</th>
@@ -511,13 +542,11 @@ var WeeklySummary = React.createClass({
             if (dates[i].format('YYYY-MM-DD') == this.props.date.format('YYYY-MM-DD')) {
                 selectedCss = 'selected';
             }
-            dateNames.push(<th key={'date' + s} className={selectedCss}>{dates[i].format('dddd (DD/MM)')}</th>);
+            dateNames.push(<th key={'date' + s} className={selectedCss}>{dates[i].format('dddd (DD/MM)') }</th>);
             if (workingDay) {
                 workingDaysInWeek++;
             }
         }
-
-
 
         var totalCss = total == workingDaysInWeek ? 'green' : 'grey';
         return (
