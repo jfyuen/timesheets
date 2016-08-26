@@ -58,11 +58,16 @@ function isWeekday(d) {
 
 var JNTDatePicker = React.createClass({
     render: function () {
+        var jnts = []; 
+        this.props.jnts.forEach(function(e) {
+            jnts.push(moment(e, 'YYYY-MM-DD'));
+        });
+        
         return (
             <div className='jnt-picker'>
                 <label htmlFor='date' >Date ({this.props.date.format('dddd') }) </label>
                 <div style={{ display: 'table-cell' }} >
-                    <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='fr' excludeDates={this.props.jnts}/>
+                    <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='fr' excludeDates={jnts}/>
                     <input type='button' onClick={this.props.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
                     <input type='button' onClick={this.props.nextDay} value='Jour suivant'  className="button" style={{ display: 'table-cell' }}/>
                 </div>
@@ -113,7 +118,7 @@ var Timetable = React.createClass({
             allocations: {},
             errorMsg: '',
             comment: '',
-            jnts: [],
+            jnts: new Set(),
         };
     },
     componentDidMount: function () {
@@ -143,10 +148,10 @@ var Timetable = React.createClass({
 
                 var jntJson = results['jnts'];
 
-                var jnts = [];
+                var jnts = new Set();
+
                 for (var i = 0; i < jntJson.length; i++) {
-                    var day = moment(jntJson[i], 'YYYY-MM-DD');
-                    jnts.push(day);
+                    jnts.add(jntJson[i]);
                 }
 
                 delete results['jnts'];
@@ -207,7 +212,7 @@ var Timetable = React.createClass({
                             //onPrevYear={() => this.onPrevYear()}
                             //onNextYear={() => this.onNextYear()}
                             goToToday={this.goToToday}/>
-                        <Calendar year={this.state.today.year() } onPickDate={this.changeDate} selectedDay={this.state.today} customClasses={function(d) {return that.getWorkingDayCss(d)}}/>
+                        <Calendar year={this.state.today.year() } onPickDate={this.changeDate} selectedDay={this.state.today} customClasses={function (d) { return that.getWorkingDayCss(d) } }/>
                     </div>
                 </div>
                 <hr/>
@@ -234,10 +239,8 @@ var Timetable = React.createClass({
         return 'jnt';
     },
     isWorkingDay: function (d) {
-        for (var i = 0; i < this.state.jnts.length; i++) {
-            if (this.state.jnts[i].format('YYYY-MM-DD') == d.format('YYYY-MM-DD')) {
-                return false;
-            }
+        if (this.state.jnts.has(d.format('YYYY-MM-DD'))) {
+            return false;
         }
         return isWeekday(d);
     },
