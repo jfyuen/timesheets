@@ -64,6 +64,10 @@ th {
     background-color: grey;
 }
 
+.red {
+    background-color: red;
+}
+
 .daily-sumup {
     min-width: 400px;
 }

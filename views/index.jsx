@@ -573,7 +573,13 @@ var TotalCell = React.createClass({
         var total = '';
         if (this.props.workingDay) {
             total = this.props.total;
-            css = this.props.total == 1 ? 'green' : 'grey';
+            if (this.props.total == 1) {
+                css = 'green';
+            } else if (this.props.total < 1) {
+                css = 'grey';
+            } else {
+                css = 'red';
+            }
         }
         return (
             <td className={css}>{total}</td>
