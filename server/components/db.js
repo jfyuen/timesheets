@@ -124,16 +124,64 @@ var dbWrapper = {
         this.db.close();
     },
     addTask: function (user_id, activity_id, allocation_id, day, comment, cb) {
-        this.db.run('INSERT INTO TASKS(USER_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY, COMMENT) VALUES (?, ?, ?, strftime("%Y-%m-%d", ?), ?)',
-            [user_id, allocation_id, activity_id, day, comment],
-            function (err) {
-                if (cb) {
-                    if (err) {
-                        cb(err, null);
-                    } else {
-                        cb(null, { id: this.lastID });
-                    }
+        var total = 0;
+        var taskValue = 0.;
+        var hasTask = false;
+        var that = this;
+        this.db.each('SELECT TASKS.ACTIVITY_ID, t.VALUE from TASKS, TIME_ALLOCATION t where TASKS.TIME_ALLOCATION_ID = t.ID and TASKS.DAY = strftime("%Y-%m-%d", ?) and TASKS.USER_ID = ?',
+            [day, user_id], function (err, row) {
+                if (!err) {
+                    total += row.VALUE;
+                    hasTask |= row.ACTIVITY_ID == activity_id;
                 }
+            }, function (err, size) {
+                if (!cb) {
+                    return;
+                }
+                if (err) {
+                    cb(err, null);
+                    return;
+                }
+                if (hasTask) {
+                    cb('Cette tâche existe déjà pour la journée.', null);
+                    return;
+                }
+                that.db.each('SELECT VALUE from TIME_ALLOCATION where TIME_ALLOCATION.ID = ?',
+                    [allocation_id], function (err, row) {
+                        if (!err) {
+                            taskValue = row.VALUE;
+                        }
+                    }, function (err, size) {
+
+                        if (!cb) {
+                            return;
+                        }
+                        if (err) {
+                            cb(err, null);
+                            return;
+                        }
+
+                        if (size != 1) {
+                            cb('Got ' + parseInt(size) + ' tasks instead of 1', null);
+                            return;
+                        }
+                        if (total + taskValue > 1.) {
+                            cb("Vous ne pouvez pas travailler plus d'une journée le même jour.", null);
+                            return;
+                        }
+                        that.db.run('INSERT INTO TASKS(USER_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY, COMMENT) VALUES (?, ?, ?, strftime("%Y-%m-%d", ?), ?)',
+                            [user_id, allocation_id, activity_id, day, comment],
+                            function (err) {
+                                if (!cb) {
+                                    return;
+                                }
+                                if (err) {
+                                    cb(err, null);
+                                    return
+                                }
+                                cb(null, { id: this.lastID });
+                            });
+                    });
             });
     },
     getAllTasks: function (cb) {
@@ -155,15 +203,23 @@ var dbWrapper = {
         });
     },
     deleteTasks: function (task_ids, cb) {
-        this.db.run('DELETE FROM TASKS where rowid in (?)',
+        var query = '';
+        for (var i = 0; i < task_ids.length; i++) {
+            query += '?';
+            if (i < task_ids.length - 1) {
+                query += ',';
+            }
+        }
+        this.db.run('DELETE FROM TASKS where rowid in (' + query + ')',
             task_ids,
             function (err) {
-                if (cb) {
-                    if (err) {
-                        cb(err, null);
-                    } else {
-                        cb(null, { changes: this.changes });
-                    }
+                if (!cb) {
+                    return;
+                }
+                if (err) {
+                    cb(err, null);
+                } else {
+                    cb(null, { changes: this.changes });
                 }
             });
     },

@@ -58,11 +58,11 @@ function isWeekday(d) {
 
 var JNTDatePicker = React.createClass({
     render: function () {
-        var jnts = []; 
-        this.props.jnts.forEach(function(e) {
+        var jnts = [];
+        this.props.jnts.forEach(function (e) {
             jnts.push(moment(e, 'YYYY-MM-DD'));
         });
-        
+
         return (
             <div className='jnt-picker'>
                 <label htmlFor='date' >Date ({this.props.date.format('dddd') }) </label>
@@ -92,14 +92,23 @@ function arrayToMap(a) {
     return m;
 }
 
-function fetcher(url, cb) {
-    fetch(url).then(function (response) {
+function checkStatus(response) {
+    if (response.status >= 200 && response.status < 300) {
         return response.json();
-    }).then(function (content) {
-        cb(null, content)
-    }).catch(function (ex) {
-        cb(ex, null);
-    });
+    } else {
+        return response.json().then(function (body) {
+            throw body;
+        });
+    }
+}
+
+function fetcher(url, cb) {
+    fetch(url).then(checkStatus)
+        .then(function (content) {
+            cb(null, content)
+        }).catch(function (ex) {
+            cb(ex, null);
+        });
 };
 
 var Timetable = React.createClass({
@@ -140,7 +149,6 @@ var Timetable = React.createClass({
                 fetcher('/jnt', cb);
             }
         }, function (err, results) {
-
             if (err) {
                 console.log('error in async parrallel', err);
                 that.setState({ errorMsg: err });
@@ -335,7 +343,7 @@ var Timetable = React.createClass({
             weeklyTasks[today] = dailyTasks;
             that.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
         }).catch(function (ex) {
-            console.log('parsing failed', ex)
+            console.log(ex)
             that.setState({ errorMsg: ex });
         });
     },
@@ -355,19 +363,7 @@ var Timetable = React.createClass({
             return;
         }
         var today = this.state.today.format('YYYY-MM-DD');
-        var dailyWorkedTime = this.computeDailyWorkedTime(today);
-        if (dailyWorkedTime.err) {
-            this.setState({ errorMsg: dailyWorkedTime.err });
-            return;
-        }
 
-        var weeklyTasks = {};
-        for (var k in this.state.weeklyTasks) {
-            weeklyTasks[k] = this.state.weeklyTasks[k];
-        }
-
-        if (!(today in weeklyTasks))
-            weeklyTasks[today] = [];
         var that = this;
         fetch('/users/' + this.state.user_id + '/tasks', {
             method: 'POST',
@@ -381,45 +377,31 @@ var Timetable = React.createClass({
                 comment: this.state.comment,
                 date: today
             })
-        }).then(function (response) {
-            return response.json();
-        }).then(function (content) {
-            weeklyTasks[today].push({
-                id: content.id,
-                activity: that.state.activities.dict[that.state.activity_id],
-                project: that.state.projects.dict[that.state.project_id],
-                allocation: that.state.allocations.dict[that.state.allocation_id],
-                comment: that.state.comment,
-                date: today
-            });
-            that.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
-            if (cb) {
-                cb();
-            }
-        }).catch(function (ex) {
-            console.log('parsing failed', ex)
-        });
-    },
-    // TODO: to be check on the server
-    computeDailyWorkedTime: function (today) {
-        var dailyWorkedTime = 0;
-
-        if (today in this.state.weeklyTasks) {
-            var dailyTasks = this.state.weeklyTasks[today];
-            for (var i = 0; i < dailyTasks.length; i++) {
-                var task = dailyTasks[i];
-                if (task.activity.id == this.state.activity_id && task.project.id == this.state.project_id) {
-                    return { err: 'Cette tâche existe déjà pour la journée.', value: 0 };
+        }).then(checkStatus)
+            .then(function (content) {
+                var weeklyTasks = {};
+                for (var k in that.state.weeklyTasks) {
+                    weeklyTasks[k] = that.state.weeklyTasks[k];
                 }
-                dailyWorkedTime += task.allocation.value;
-            }
-        }
-        if (dailyWorkedTime + this.state.allocations.dict[this.state.allocation_id].value > 1.) {
-            return { err: "Vous ne pouvez pas travailler plus d'une journée le même jour.", value: 0 };
 
-        }
-        return { err: null, value: dailyWorkedTime };
-    }
+                if (!(today in weeklyTasks))
+                    weeklyTasks[today] = [];
+                weeklyTasks[today].push({
+                    id: content.id,
+                    activity: that.state.activities.dict[that.state.activity_id],
+                    project: that.state.projects.dict[that.state.project_id],
+                    allocation: that.state.allocations.dict[that.state.allocation_id],
+                    comment: that.state.comment,
+                    date: today
+                });
+                that.setState({ weeklyTasks: weeklyTasks, errorMsg: '' });
+                if (cb) {
+                    cb();
+                }
+            }).catch(function (ex) {
+                that.setState({ errorMsg: ex });
+            });
+    },
 });
 
 
