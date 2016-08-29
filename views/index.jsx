@@ -12,7 +12,9 @@ require('../static/css/style.css');
 require('../static/css/react-yearly-calendar.css');
 require('react-datepicker/dist/react-datepicker.css');
 require('whatwg-fetch');
-var {Calendar, CalendarControls} = require('react-yearly-calendar');
+var yearlyCalendar = require('react-yearly-calendar');
+var Calendar = yearlyCalendar.Calendar;
+var CalendarControls = yearlyCalendar.CalendarControls;
 
 var Option = React.createClass({
     render: function () {
