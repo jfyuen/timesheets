@@ -25,11 +25,6 @@ var Option = React.createClass({
 });
 
 var SelectList = React.createClass({
-    getInitialState: function () {
-        return {
-            selected: '-1'
-        };
-    },
     render: function () {
         var options = [<Option val='' key='-1'/>];
         if (this.props.values) {
@@ -40,14 +35,13 @@ var SelectList = React.createClass({
 
         return (
             <div className={this.props.cssclass}>
-                <label htmlFor={this.props.id} className='select-label'>{this.props.label}</label><select className='select-form' value={this.state.selected} id={this.props.id} onChange={this.onChange}>
+                <label htmlFor={this.props.id} className='select-label'>{this.props.label}</label><select className='select-form' value={this.props.selected} id={this.props.id} onChange={this.onChange}>
                     {options}
                 </select>
             </div>
         );
     },
     onChange: function (e) {
-        this.setState({ selected: e.target.value });
         this.props.changeFunc(e.target.value);
     }
 });
@@ -113,19 +107,35 @@ function fetcher(url, cb) {
         });
 };
 
+function filterSubMenu(id, sublist, name) {
+    if (id == -1) {
+        return [];
+    }
+
+    var lst = [];
+    for (var i = 0; i < sublist.list.length; i++) {
+        var elem = sublist.list[i];
+        if (elem[name] == id) {
+            lst.push(elem);
+        }
+    }
+    return lst;
+}
+
 var Timetable = React.createClass({
     getInitialState: function () {
         return {
             today: moment(),
             weeklyTasks: {},
             user_id: -1,
+            category_id: -1,
             project_id: -1,
             activity_id: -1,
             allocation_id: -1,
             users: {},
+            categories: {},
             projects: {},
             activities: {},
-            project_activities: { dict: {}, list: [] },
             allocations: {},
             errorMsg: '',
             comment: '',
@@ -135,6 +145,9 @@ var Timetable = React.createClass({
     componentDidMount: function () {
         var that = this;
         async.parallel({
+            categories: function (cb) {
+                fetcher('/categories', cb);
+            },
             activities: function (cb) {
                 fetcher('/activities', cb);
             },
@@ -190,14 +203,19 @@ var Timetable = React.createClass({
     render: function () {
         var dailyTasks = this.dailyTasks();
         var that = this;
+        var projectActivities = filterSubMenu(this.state.project_id, this.state.activities, 'project_id');
+
+        var categoryProjects = filterSubMenu(this.state.category_id, this.state.projects, 'category_id');
+
         return (
             <div>
                 <form className='task-table'>
-                    <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser}/>
+                    <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser} selected={this.state.user_id}/>
                     <JNTDatePicker date={this.state.today} previousDay={this.previousDay} nextDay={this.nextDay} jnts={this.state.jnts} changeDate={this.changeDate}/>
-                    <SelectList values={this.state.projects.list} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject}/>
-                    <SelectList values={this.state.project_activities.list} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity}/>
-                    <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation}/>
+                    <SelectList values={this.state.categories.list} label='Catégorie' cssclass='category-select' id='category' changeFunc={this.changeCategory} selected={this.state.category_id}/>
+                    <SelectList values={categoryProjects} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject} selected={this.state.project_id}/>
+                    <SelectList values={projectActivities} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity} selected={this.state.activity_id}/>
+                    <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation} selected={this.state.allocation_id}/>
                     <Comment comment={this.state.comment} updateComment={this.changeComment}/>
                     <div style={{ display: 'table-row' }}>
                         <div style={{ display: 'table-cell' }}>
@@ -299,17 +317,11 @@ var Timetable = React.createClass({
             that.setState({ errorMsg: 'Error in receiving user tasks' + ex });
         });
     },
+    changeCategory: function (category_id) {
+        this.setState({ category_id: parseInt(category_id), project_id: -1, activity_id: -1 });
+    },
     changeProject: function (project_id) {
-        var projectActivities = { list: [] };
-        var activities = this.state.activities.list;
-        for (var i = 0; i < activities.length; i++) {
-            var activity = activities[i];
-            if (activity.project_id == project_id) {
-                projectActivities.list.push(activity);
-            }
-        }
-        projectActivities.dict = arrayToMap(projectActivities.list);
-        this.setState({ project_id: parseInt(project_id), project_activities: projectActivities });
+        this.setState({ project_id: parseInt(project_id), activity_id: -1 });
     },
     changeActivity: function (activity_id) {
         this.setState({ activity_id: parseInt(activity_id) });
@@ -360,7 +372,7 @@ var Timetable = React.createClass({
             this.setState({ errorMsg: 'Veuillez sélectionner un jour de la semaine entre lundi et vendredi.' });
             return;
         }
-        if (this.state.allocation_id == -1 || this.state.user_id == -1 || this.state.project_id == -1 || this.state.activity_id == -1) {
+        if (this.state.allocation_id == -1 || this.state.user_id == -1 || this.state.project_id == -1 || this.state.activity_id == -1 || this.state.category_id == -1) {
             this.setState({ errorMsg: 'Veuillez sélectionner un choix valide.' });
             return;
         }

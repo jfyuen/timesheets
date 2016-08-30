@@ -36,18 +36,32 @@ var dbWrapper = {
             ];
 
 
-            var projects = [
-                { id: 0, name: 'Project 1' },
-                { id: 1, name: 'Project 2' },
-                { id: 2, name: 'Project 3' }
+            var categories = [
+                { id: 0, name: 'Category 1' },
+                { id: 1, name: 'Category 2' },
             ];
 
-            var tablesData = [{ table: 'PROJECTS', data: projects }, { table: 'USERS', data: users }]
+            var tablesData = [{ table: 'CATEGORIES', data: categories }, { table: 'USERS', data: users }]
             for (var i = 0; i < tablesData.length; i++) {
                 var t = tablesData[i];
                 this.db.run('CREATE TABLE ' + t.table + ' (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL)');
                 this.addToTable(t.table, t.data);
             }
+
+            var projects = [
+                { id: 0, name: 'Project 1' , category_id: 0},
+                { id: 1, name: 'Project 2', category_id: 0 },
+                { id: 2, name: 'Project 3', category_id: 1 }
+            ];            
+
+            this.db.run('CREATE TABLE PROJECTS (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL, CATEGORY_ID INTEGER NOT NULL,\
+                FOREIGN KEY (CATEGORY_ID) REFERENCES CATEGORIES(ID))');
+            var stmt = db.prepare('INSERT INTO PROJECTS(ID, NAME, CATEGORY_ID) VALUES (?, ?, ?)');
+            for (var i = 0; i < projects.length; i++) {
+                var row = projects[i];
+                stmt.run(row.id, row.name, row.category_id);
+            }
+            stmt.finalize();
 
             var activities = [
                 { id: 0, name: 'Activity 1', project_id: 0 },
@@ -264,14 +278,24 @@ var dbWrapper = {
             cb(err, results);
         });
     },
-    getProjects: function (cb) {
-        this.queryTable('PROJECTS', cb);
+    getCategories: function (cb) {
+        this.queryTable('CATEGORIES', cb);
     },
     getActivities: function (cb) {
         var results = [];
         this.db.each('SELECT ID, NAME, PROJECT_ID FROM ACTIVITIES order by NAME', function (err, row) {
             if (!err) {
                 results.push({ id: row.ID, name: row.NAME, project_id: row.PROJECT_ID });
+            }
+        }, function (err, size) {
+            cb(err, results);
+        });
+    },
+    getProjects: function (cb) {
+        var results = [];
+        this.db.each('SELECT ID, NAME, CATEGORY_ID FROM PROJECTS order by NAME', function (err, row) {
+            if (!err) {
+                results.push({ id: row.ID, name: row.NAME, category_id: row.CATEGORY_ID });
             }
         }, function (err, size) {
             cb(err, results);

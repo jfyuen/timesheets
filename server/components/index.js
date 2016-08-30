@@ -1,7 +1,8 @@
 "use strict";
 
 const express = require("express");
-var projects = require('./projects'),
+var categories = require('./categories'),
+    projects = require('./projects'),
     activities = require('./activities'),
     allocations = require('./allocations'),
     users = require('./users'),
@@ -16,6 +17,7 @@ function nocache(req, res, next) {
 }
 
 module.exports.init = function (app, callback) {
+    app.use('/categories', nocache, categories);
     app.use('/projects', nocache, projects);
     app.use('/activities', nocache, activities);
     app.use('/allocations', nocache, allocations);

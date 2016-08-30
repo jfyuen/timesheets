@@ -2,7 +2,7 @@
     width: 100px;
 }
 
-.project-select, .activity-select, .allocation-select {
+.category-select, .project-select, .activity-select, .allocation-select {
     display: table-row;
 }
 
