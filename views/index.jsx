@@ -324,8 +324,16 @@ var Timetable = React.createClass({
             that.setState({ errorMsg: 'Error in receiving user tasks' + ex });
         });
     },
-    changeCategory: function (category_id) {
-        this.setState({ category_id: parseInt(category_id), project_id: -1, activity_id: -1 });
+    changeCategory: function (categoryId) {
+        var categoryId = parseInt(categoryId);
+        var projects = this.getCategoryProjects(categoryId);
+        if (projects.length == 1) {
+            var projectId = projects[0].id;
+            this.setState({ category_id: categoryId, project_id: projectId, activity_id: -1 });
+            this.changeProject(projectId);
+        } else {
+            this.setState({ category_id: categoryId, project_id: -1, activity_id: -1 });
+        }
     },
     changeProject: function (project_id) {
         var projectId = parseInt(project_id);
