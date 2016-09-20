@@ -26,6 +26,9 @@ var Option = React.createClass({
 
 var SelectList = React.createClass({
     render: function () {
+        if (this.props.values && this.props.values.length <= 1) {
+            return null;
+        }
         var options = [<Option val='' key='-1'/>];
         if (this.props.values) {
             this.props.values.forEach(function (val) {
@@ -200,13 +203,17 @@ var Timetable = React.createClass({
         }
         return [];
     },
+    getProjectActivities: function (projectId) {
+        return filterSubMenu(projectId, this.state.activities, 'project_id');
+    },
+    getCategoryProjects: function (categoryId) {
+        return filterSubMenu(categoryId, this.state.projects, 'category_id');
+    },
     render: function () {
         var dailyTasks = this.dailyTasks();
         var that = this;
-        var projectActivities = filterSubMenu(this.state.project_id, this.state.activities, 'project_id');
-
-        var categoryProjects = filterSubMenu(this.state.category_id, this.state.projects, 'category_id');
-
+        var categoryProjects = this.getCategoryProjects(this.state.category_id);
+        var projectActivities = this.getProjectActivities(this.state.project_id);
         return (
             <div>
                 <form className='task-table'>
@@ -321,7 +328,13 @@ var Timetable = React.createClass({
         this.setState({ category_id: parseInt(category_id), project_id: -1, activity_id: -1 });
     },
     changeProject: function (project_id) {
-        this.setState({ project_id: parseInt(project_id), activity_id: -1 });
+        var projectId = parseInt(project_id);
+        var activities = this.getProjectActivities(projectId);
+        if (activities.length == 1) {
+            this.setState({ project_id: projectId, activity_id: activities[0].id });
+        } else {
+            this.setState({ project_id: projectId, activity_id: -1 });
+        }
     },
     changeActivity: function (activity_id) {
         this.setState({ activity_id: parseInt(activity_id) });
