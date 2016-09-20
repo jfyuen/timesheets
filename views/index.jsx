@@ -377,10 +377,12 @@ var Timetable = React.createClass({
     changeDate: function (d) {
         this.setState({ today: d, errorMsg: '' });
     },
-    addTaskAndNextDay: function () {
-        this.addTask(this.nextDay);
+    addTaskAndNextDay: function (event) {
+        event.preventDefault();
+        this.addTask(event, this.nextDay);
     },
-    addTask: function (cb) {
+    addTask: function (event, cb) {
+        event.preventDefault();
         if (!isWeekday(this.state.today)) {
             this.setState({ errorMsg: 'Veuillez sélectionner un jour de la semaine entre lundi et vendredi.' });
             return;
