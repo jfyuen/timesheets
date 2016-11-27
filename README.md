@@ -19,11 +19,15 @@ If no database path (`${DB_PATH}`) is set, it will create one in the app root di
 $ npm start
 ```
 
+The app starts on port 8080 by default.
+
 ### Development
 
 ```bash
 $ npm run dev
 ```
+The app starts on port 8081 by default.
+
 
 ## Docker
 
