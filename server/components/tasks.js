@@ -6,9 +6,13 @@ const express = require("express"),
 var router = express.Router();
 var db = require('./db');
 
-router.route('/')
+router.route('/:ids')
     .delete(function (req, res) {
-        var task_ids = req.body.task_ids;
+        var ids = req.params['ids'].split(',');
+        var task_ids = [];
+        for (var i = 0; i < ids.length; i++) {
+            task_ids.push(parseInt(ids[i]));
+        }
         db.deleteTasks(task_ids, function (err, results) {
             if (err) {
                 res.status(500).json(err);
@@ -16,7 +20,9 @@ router.route('/')
                 res.status(200).json('ok');
             }
         });
-    })
+    });
+    
+router.route('/')
     .get(function (req, res) {
         db.getAllTasks(function (err, results) {
             if (err) {

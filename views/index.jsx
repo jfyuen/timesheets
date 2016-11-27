@@ -352,15 +352,12 @@ var Timetable = React.createClass({
     },
     deleteDailyTasks: function (indexes) {
         var that = this;
-        fetch('/tasks', {
+        fetch('/tasks/' + indexes.join(), {
             method: 'DELETE',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                task_ids: indexes
-            })
+            }
 
         }).then(function (response) {
             return response.json();
