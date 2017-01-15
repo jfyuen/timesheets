@@ -11,6 +11,9 @@ var async = require('async');
 require('../static/css/style.css');
 require('../static/css/react-yearly-calendar.css');
 require('react-datepicker/dist/react-datepicker.css');
+var ES6Promise = require('es6-promise');
+ES6Promise.polyfill();
+
 require('whatwg-fetch');
 var yearlyCalendar = require('react-yearly-calendar');
 var Calendar = yearlyCalendar.Calendar;
