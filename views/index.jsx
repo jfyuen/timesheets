@@ -11,8 +11,7 @@ var async = require('async');
 require('../static/css/style.css');
 require('../static/css/react-yearly-calendar.css');
 require('react-datepicker/dist/react-datepicker.css');
-var ES6Promise = require('es6-promise');
-ES6Promise.polyfill();
+require('es6-promise').polyfill();
 
 require('whatwg-fetch');
 var yearlyCalendar = require('react-yearly-calendar');
@@ -32,10 +31,10 @@ var SelectList = React.createClass({
         if (this.props.values && this.props.values.length <= 1) {
             return null;
         }
-        var options = [<Option val='' key='-1'/>];
+        var options = [<Option val='' key='-1' />];
         if (this.props.values) {
             this.props.values.forEach(function (val) {
-                options.push(<Option val={val} key={val.id}/>);
+                options.push(<Option val={val} key={val.id} />);
             }.bind(this));
         }
 
@@ -67,11 +66,11 @@ var JNTDatePicker = React.createClass({
 
         return (
             <div className='jnt-picker'>
-                <label htmlFor='date' >Date ({this.props.date.format('dddd') }) </label>
+                <label htmlFor='date' >Date ({this.props.date.format('dddd')}) </label>
                 <div style={{ display: 'table-cell' }} >
-                    <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday}  locale='fr' excludeDates={jnts}/>
-                    <input type='button' onClick={this.props.previousDay} value='Jour précédent'  className="button" style={{ display: 'table-cell' }}/>
-                    <input type='button' onClick={this.props.nextDay} value='Jour suivant'  className="button" style={{ display: 'table-cell' }}/>
+                    <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday} locale='fr' excludeDates={jnts} />
+                    <input type='button' onClick={this.props.previousDay} value='Jour précédent' className="button" style={{ display: 'table-cell' }} />
+                    <input type='button' onClick={this.props.nextDay} value='Jour suivant' className="button" style={{ display: 'table-cell' }} />
                 </div>
             </div>
         );
@@ -81,7 +80,7 @@ var JNTDatePicker = React.createClass({
 var Comment = React.createClass({
     render: function () {
         return (
-            <div className='comment'><label htmlFor='comment' className='comment-label'>Remarque</label><textarea id='comment' value={this.props.comment} onChange={this.props.updateComment}/></div>
+            <div className='comment'><label htmlFor='comment' className='comment-label'>Remarque</label><textarea id='comment' value={this.props.comment} onChange={this.props.updateComment} /></div>
         );
     }
 });
@@ -220,40 +219,40 @@ var Timetable = React.createClass({
         return (
             <div>
                 <form className='task-table'>
-                    <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser} selected={this.state.user_id}/>
-                    <JNTDatePicker date={this.state.today} previousDay={this.previousDay} nextDay={this.nextDay} jnts={this.state.jnts} changeDate={this.changeDate}/>
-                    <SelectList values={this.state.categories.list} label='Catégorie' cssclass='category-select' id='category' changeFunc={this.changeCategory} selected={this.state.category_id}/>
-                    <SelectList values={categoryProjects} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject} selected={this.state.project_id}/>
-                    <SelectList values={projectActivities} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity} selected={this.state.activity_id}/>
-                    <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation} selected={this.state.allocation_id}/>
-                    <Comment comment={this.state.comment} updateComment={this.changeComment}/>
+                    <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser} selected={this.state.user_id} />
+                    <JNTDatePicker date={this.state.today} previousDay={this.previousDay} nextDay={this.nextDay} jnts={this.state.jnts} changeDate={this.changeDate} />
+                    <SelectList values={this.state.categories.list} label='Catégorie' cssclass='category-select' id='category' changeFunc={this.changeCategory} selected={this.state.category_id} />
+                    <SelectList values={categoryProjects} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject} selected={this.state.project_id} />
+                    <SelectList values={projectActivities} label='Activité' cssclass='activity-select' id='activity' changeFunc={this.changeActivity} selected={this.state.activity_id} />
+                    <SelectList values={this.state.allocations.list} label='Temps' cssclass='allocation-select' id='allocation' changeFunc={this.changeAllocation} selected={this.state.allocation_id} />
+                    <Comment comment={this.state.comment} updateComment={this.changeComment} />
                     <div style={{ display: 'table-row' }}>
                         <div style={{ display: 'table-cell' }}>
-                            <input type='button' onClick={this.addTask} value='Ajouter cette tâche'/>
+                            <input type='button' onClick={this.addTask} value='Ajouter cette tâche' />
                         </div>
                         <div style={{ display: 'table-cell' }}>
-                            <input type='button' onClick={this.addTaskAndNextDay} value='Ajouter cette tâche et aller au prochain jour'/>
+                            <input type='button' onClick={this.addTaskAndNextDay} value='Ajouter cette tâche et aller au prochain jour' />
                         </div>
                     </div>
                 </form>
                 <div className='error'>{this.state.errorMsg}</div>
-                <hr/>
-                <DailySummary tasks={dailyTasks} deleteTasks={this.deleteDailyTasks} date={this.state.today}/>
-                <hr/>
-                <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today} isWorkingDay={this.isWorkingDay}/>
-                <hr/>
+                <hr />
+                <DailySummary tasks={dailyTasks} deleteTasks={this.deleteDailyTasks} date={this.state.today} />
+                <hr />
+                <WeeklySummary tasks={this.state.weeklyTasks} date={this.state.today} isWorkingDay={this.isWorkingDay} />
+                <hr />
                 <div id='demo'>
                     <div id='calendar'>
                         <CalendarControls
-                            year={this.state.today.year() }
+                            year={this.state.today.year()}
                             showTodayButton={true}
                             //onPrevYear={() => this.onPrevYear()}
                             //onNextYear={() => this.onNextYear()}
-                            goToToday={this.goToToday}/>
-                        <Calendar year={this.state.today.year() } onPickDate={this.changeDate} selectedDay={this.state.today} customClasses={function (d) { return that.getWorkingDayCss(d) } }/>
+                            goToToday={this.goToToday} />
+                        <Calendar year={this.state.today.year()} onPickDate={this.changeDate} selectedDay={this.state.today} customClasses={function (d) { return that.getWorkingDayCss(d) } } />
                     </div>
                 </div>
-                <hr/>
+                <hr />
                 <a download='tasks.csv' href='/tasks'>Télécharger en csv</a>
             </div>
         );
@@ -272,7 +271,18 @@ var Timetable = React.createClass({
             for (var i = 0; i < tasks.length; i++) {
                 total += tasks[i].allocation.value;
             }
-            return total == 1 ? 'day-ok' : '';
+            switch (parseInt(total * 100)) {
+                case 100:
+                    return 'day-ok';
+                case 75:
+                    return 'day-75';
+                case 50:
+                    return 'day-50';
+                case 25:
+                    return 'day-25';
+                default:
+                    return '';
+            }
         }
         return 'jnt';
     },
@@ -450,7 +460,7 @@ var DailyTask = React.createClass({
     },
     render: function () {
         return (
-            <tr><td><input type="checkbox" value={this.state.checked} onChange={this.handleClick}/> {this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td><td>{this.props.comment}</td></tr>
+            <tr><td><input type="checkbox" value={this.state.checked} onChange={this.handleClick} /> {this.props.project.name}</td><td>{this.props.activity.name}</td><td>{this.props.allocation.name}</td><td>{this.props.comment}</td></tr>
         );
     },
     handleClick: function () {
@@ -469,12 +479,12 @@ var DailySummary = React.createClass({
     render: function () {
         var rows = [];
         this.props.tasks.forEach(function (task) {
-            rows.push(<DailyTask project={task.project} key={task.id} index={task.id} activity={task.activity} allocation={task.allocation} comment={task.comment} handleTaskClick={this.handleTaskClick}/>);
+            rows.push(<DailyTask project={task.project} key={task.id} index={task.id} activity={task.activity} allocation={task.allocation} comment={task.comment} handleTaskClick={this.handleTaskClick} />);
         }.bind(this));
         return (
             <div>
                 <table className='daily-sumup'>
-                    <caption>Journée en cours: {this.props.date.format('dddd DD MMMM YYYY') }</caption>
+                    <caption>Journée en cours: {this.props.date.format('dddd DD MMMM YYYY')}</caption>
                     <tbody>
                         <tr>
                             <th>Projet</th><th>Activité</th><th>Temps</th><th>Remarque</th>
@@ -482,7 +492,7 @@ var DailySummary = React.createClass({
                         {rows}
                     </tbody>
                 </table>
-                <input type="button" value="Effacer les tâches" onClick={this.deleteTasks}/>
+                <input type="button" value="Effacer les tâches" onClick={this.deleteTasks} />
             </div>
         );
     },
@@ -559,12 +569,12 @@ var WeeklySummary = React.createClass({
         for (var i = 0; i < 5; i++) {
             var s = parseInt(i);
             var workingDay = this.props.isWorkingDay(dates[i]);
-            totalCells.push(<TotalCell total={sumDays[s]} key={'totalCell' + s} workingDay={workingDay}/>);
+            totalCells.push(<TotalCell total={sumDays[s]} key={'totalCell' + s} workingDay={workingDay} />);
             var selectedCss = '';
             if (dates[i].format('YYYY-MM-DD') == this.props.date.format('YYYY-MM-DD')) {
                 selectedCss = 'selected';
             }
-            dateNames.push(<th key={'date' + s} className={selectedCss}>{dates[i].format('dddd (DD/MM)') }</th>);
+            dateNames.push(<th key={'date' + s} className={selectedCss}>{dates[i].format('dddd (DD/MM)')}</th>);
             if (workingDay) {
                 workingDaysInWeek++;
             }
@@ -592,12 +602,21 @@ var TotalCell = React.createClass({
         var total = '';
         if (this.props.workingDay) {
             total = this.props.total;
-            if (this.props.total == 1) {
-                css = 'green';
-            } else if (this.props.total < 1) {
-                css = 'grey';
-            } else {
-                css = 'red';
+            switch (parseInt(total * 100)) {
+                case 100:
+                    css = 'green';
+                    break;
+                case 75:
+                    css = 'limegreen';
+                    break;
+                case 50:
+                    css = 'darkseagreen';
+                    break;
+                case 25:
+                    css = 'lightgreen';
+                    break;
+                default:
+                    css = 'red';
             }
         }
         return (
@@ -608,6 +627,5 @@ var TotalCell = React.createClass({
 
 ReactDOM.render(
     <Timetable />,
-    // <FilterableProductTable products={PRODUCTS} />,
     document.getElementById('container')
 );

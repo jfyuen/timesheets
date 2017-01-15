@@ -75,3 +75,15 @@ th {
 .selected {
     background-color: yellow;
 }
+
+.lightgreen {
+  background-color: lightgreen;
+}
+
+.limegreen {
+  background-color: limegreen;
+}
+
+.darkseagreen {
+  background-color: darkseagreen;
+}
