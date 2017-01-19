@@ -126,7 +126,7 @@ var dbWrapper = {
                 ACTIVITY_ID INTEGER NOT NULL,\
                 DAY DATE NOT NULL,\
                 COMMENT TEXT,\
-                FOREIGN KEY (USER_ID) REFERENCES USER(ID),\
+                FOREIGN KEY (USER_ID) REFERENCES USERS(ID),\
                 FOREIGN KEY (TIME_ALLOCATION_ID) REFERENCES TIME_ALLOCATION(ID),\
                 FOREIGN KEY (ACTIVITY_ID) REFERENCES ACTIVITIES(ID))');
             this.addTask(0, 0, 0, '2016-07-25', '', null);
