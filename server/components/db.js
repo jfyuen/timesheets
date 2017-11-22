@@ -18,22 +18,23 @@ var db = new sqlite3.Database(file);
 
 var dbWrapper = {
     db: db,
-    addToTable: function (table, data) {
-        var stmt = db.prepare('INSERT INTO ' + table + '(ID, NAME) VALUES (?, ?)');
-        for (var i = 0; i < data.length; i++) {
-            var row = data[i];
-            stmt.run(row.id, row.name);
-        }
-        stmt.finalize();
-    },
     createEmpty: function () {
         db.serialize(function () {
 
             var users = [
-                { id: 0, name: 'JFY' },
-                { id: 1, name: 'PCN' },
-                { id: 2, name: 'BDS' }
+                { id: 0, name: 'JFY', leave_date: null },
+                { id: 1, name: 'PCN', leave_date: null  },
+                { id: 2, name: 'BDS', leave_date: null  },
+                { id: 3, name: 'NOT_DISPLAYED', leave_date: '2016-06-03' },
             ];
+
+            this.db.run('CREATE TABLE USERS (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL, LEAVE_DATE DATE)');
+            var stmt = db.prepare('INSERT INTO USERS(ID, NAME, LEAVE_DATE) VALUES (?, ?, strftime("%Y-%m-%d", ?))');
+            for (var i = 0; i < users.length; i++) {
+                var row = users[i];
+                stmt.run(row.id, row.name, row.leave_date);
+            }
+            stmt.finalize();
 
 
             var categories = [
@@ -41,12 +42,14 @@ var dbWrapper = {
                 { id: 1, name: 'Category 2' },
             ];
 
-            var tablesData = [{ table: 'CATEGORIES', data: categories }, { table: 'USERS', data: users }]
-            for (var i = 0; i < tablesData.length; i++) {
-                var t = tablesData[i];
-                this.db.run('CREATE TABLE ' + t.table + ' (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL)');
-                this.addToTable(t.table, t.data);
+            this.db.run('CREATE TABLE CATEGORIES (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL)');
+            var stmt = db.prepare('INSERT INTO CATEGORIES(ID, NAME) VALUES (?, ?)');
+            for (var i = 0; i < categories.length; i++) {
+                var row = categories[i];
+                stmt.run(row.id, row.name);
             }
+            stmt.finalize();
+            
 
             var projects = [
                 { id: 0, name: 'Project 1' , category_id: 0},
@@ -62,6 +65,7 @@ var dbWrapper = {
                 stmt.run(row.id, row.name, row.category_id);
             }
             stmt.finalize();
+
 
             var activities = [
                 { id: 0, name: 'Activity 1', project_id: 0 },
@@ -255,18 +259,15 @@ var dbWrapper = {
             cb(err, results);
         });
     },
-    queryTable: function (table, cb) {
+    getUsers: function (cb) {
         var results = [];
-        this.db.each('SELECT ID, NAME FROM ' + table + ' order by NAME', function (err, row) {
+        this.db.each('SELECT ID, NAME FROM USERS where LEAVE_DATE is NULL order by NAME', function (err, row) {
             if (!err) {
                 results.push({ id: row.ID, name: row.NAME });
             }
         }, function (err, size) {
             cb(err, results);
         });
-    },
-    getUsers: function (cb) {
-        this.queryTable('USERS', cb);
     },
     getAllocations: function (cb) {
         var results = [];
@@ -279,7 +280,14 @@ var dbWrapper = {
         });
     },
     getCategories: function (cb) {
-        this.queryTable('CATEGORIES', cb);
+        var results = [];
+        this.db.each('SELECT ID, NAME FROM CATEGORIES order by NAME', function (err, row) {
+            if (!err) {
+                results.push({ id: row.ID, name: row.NAME });
+            }
+        }, function (err, size) {
+            cb(err, results);
+        });        
     },
     getActivities: function (cb) {
         var results = [];
