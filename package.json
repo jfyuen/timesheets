@@ -15,7 +15,7 @@
     "react-dom": "^15.1.0",
     "react-yearly-calendar": "^1.1.4",
     "sqlite": "^3.0.2",
-    "whatwg-fetch": "^1.0.0"
+    "whatwg-fetch": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.3.3",
