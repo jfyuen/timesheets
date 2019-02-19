@@ -5,7 +5,7 @@
   "main": "server.js",
   "dependencies": {
     "async": "^2.6.2",
-    "body-parser": "^1.15.2",
+    "body-parser": "^1.18.3",
     "es6-promise": "^4.0.5",
     "express": "^4.14.0",
     "express-csv": "^0.6.0",
