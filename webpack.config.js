@@ -1,15 +1,15 @@
 module.exports = {
     entry: ['whatwg-fetch', './views/index.jsx'],
     output: {
-        path: './static/',
+        path: __dirname + '/static/',
         filename: 'bundle.js', 
     },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.jsx$/,
                 exclude: /node_modules/, 
-                loader: "babel", 
+                loader: "babel-loader", 
                 query:
                 {
                     presets: ['@babel/preset-env', '@babel/preset-react']
@@ -24,6 +24,6 @@ module.exports = {
         // 'react': 'React'
     },
     resolve: {
-        extensions: ['', '.js', '.jsx', '.css']
+        extensions: ['.js', '.jsx', '.css']
     }
 }
