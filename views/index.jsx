@@ -1,7 +1,5 @@
 'use strict';
 
-require('babel-register')
-
 var React = require('react');
 var ReactDOM = require('react-dom');
 var moment = require('moment');
