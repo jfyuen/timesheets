@@ -1,22 +1,27 @@
 'use strict';
 
-var React = require('react');
-var ReactDOM = require('react-dom');
-var moment = require('moment');
+import React from 'react';
+import ReactDOM from 'react-dom';
+import moment from 'moment';
 moment.locale('fr');
-var DatePicker = require('react-datepicker');
-var async = require('async');
+
+import DatePicker from 'react-datepicker';
+import { registerLocale } from 'react-datepicker';
+import fr from 'date-fns/locale/fr';
+registerLocale('fr', fr);
+
+import async from 'async';
+import createReactClass from 'create-react-class';
+
 require('../static/css/style.css');
 require('../static/css/react-yearly-calendar.css');
 require('react-datepicker/dist/react-datepicker.css');
 require('es6-promise').polyfill();
 
 require('whatwg-fetch');
-var yearlyCalendar = require('react-yearly-calendar');
-var Calendar = yearlyCalendar.Calendar;
-var CalendarControls = yearlyCalendar.CalendarControls;
+import {Calendar, CalendarControls} from 'react-yearly-calendar';
 
-var Option = React.createClass({
+var Option = createReactClass({
     render: function () {
         return (
             <option value={this.props.val.id}>{this.props.val.name}</option>
@@ -24,7 +29,7 @@ var Option = React.createClass({
     }
 });
 
-var SelectList = React.createClass({
+var SelectList = createReactClass({
     render: function () {
         if (this.props.values && this.props.values.length <= 1) {
             return null;
@@ -55,18 +60,18 @@ function isWeekday(d) {
     return dow < 5;
 }
 
-var JNTDatePicker = React.createClass({
+var JNTDatePicker = createReactClass({
     render: function () {
         var jnts = [];
         this.props.jnts.forEach(function (e) {
             jnts.push(moment(e, 'YYYY-MM-DD'));
         });
-
+        var date = this.props.date.toDate();
         return (
             <div className='jnt-picker'>
                 <label htmlFor='date' >Date ({this.props.date.format('dddd')}) </label>
                 <div style={{ display: 'table-cell' }} >
-                    <DatePicker selected={this.props.date} onChange={this.props.changeDate} dateFormat='DD/MM/YYYY' filterDate={this.isWeekday} locale='fr' excludeDates={jnts} />
+                    <DatePicker selected={date} onChange={this.props.changeDate} dateFormat='dd/MM/yyyy' filterDate={this.isWeekday} locale='fr' excludeDates={jnts} />
                     <input type='button' onClick={this.props.previousDay} value='Jour précédent' className="button" style={{ display: 'table-cell' }} />
                     <input type='button' onClick={this.props.nextDay} value='Jour suivant' className="button" style={{ display: 'table-cell' }} />
                 </div>
@@ -75,7 +80,7 @@ var JNTDatePicker = React.createClass({
     },
 });
 
-var Comment = React.createClass({
+var Comment = createReactClass({
     render: function () {
         return (
             <div className='comment'><label htmlFor='comment' className='comment-label'>Remarque</label><textarea id='comment' value={this.props.comment} onChange={this.props.updateComment} /></div>
@@ -125,7 +130,7 @@ function filterSubMenu(id, sublist, name) {
     return lst;
 }
 
-var Timetable = React.createClass({
+var Timetable = createReactClass({
     getInitialState: function () {
         return {
             today: moment(),
@@ -391,7 +396,7 @@ var Timetable = React.createClass({
         });
     },
     changeDate: function (d) {
-        this.setState({ today: d, errorMsg: '' });
+        this.setState({ today: moment(d), errorMsg: '' });
     },
     addTaskAndNextDay: function (event) {
         event.preventDefault();
@@ -450,7 +455,7 @@ var Timetable = React.createClass({
 });
 
 
-var DailyTask = React.createClass({
+var DailyTask = createReactClass({
     getInitialState: function () {
         return {
             checked: false
@@ -468,7 +473,7 @@ var DailyTask = React.createClass({
     }
 });
 
-var DailySummary = React.createClass({
+var DailySummary = createReactClass({
     getInitialState: function () {
         return {
             checkedIndexes: {},
@@ -513,7 +518,7 @@ var DailySummary = React.createClass({
     }
 });
 
-var WeeklySummary = React.createClass({
+var WeeklySummary = createReactClass({
     render: function () {
         var dow = this.props.date.weekday();
 
@@ -594,7 +599,7 @@ var WeeklySummary = React.createClass({
     },
 });
 
-var TotalCell = React.createClass({
+var TotalCell = createReactClass({
     render: function () {
         var css = '';
         var total = '';
