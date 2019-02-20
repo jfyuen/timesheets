@@ -25,7 +25,7 @@ var dbWrapper = {
                 { id: 0, name: 'JFY', leave_date: null },
                 { id: 1, name: 'PCN', leave_date: null  },
                 { id: 2, name: 'BDS', leave_date: null  },
-                { id: 3, name: 'NOT_DISPLAYED', leave_date: '2016-06-03' },
+                { id: 3, name: 'NOT_DISPLAYED_AFTER_TODAY', leave_date: moment().format('YYYY-MM-DD') },
             ];
 
             this.db.run('CREATE TABLE USERS (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL, LEAVE_DATE DATE)');
@@ -145,6 +145,7 @@ var dbWrapper = {
         var total = 0;
         var taskValue = 0.;
         var hasTask = false;
+        var leaveDate = null;
         var that = this;
         this.db.each('SELECT TASKS.ACTIVITY_ID, t.VALUE from TASKS, TIME_ALLOCATION t where TASKS.TIME_ALLOCATION_ID = t.ID and TASKS.DAY = strftime("%Y-%m-%d", ?) and TASKS.USER_ID = ?',
             [day, user_id], function (err, row) {
@@ -170,7 +171,6 @@ var dbWrapper = {
                             taskValue = row.VALUE;
                         }
                     }, function (err, size) {
-
                         if (!cb) {
                             return;
                         }
@@ -187,17 +187,35 @@ var dbWrapper = {
                             cb("Vous ne pouvez pas travailler plus d'une journée le même jour.", null);
                             return;
                         }
-                        that.db.run('INSERT INTO TASKS(USER_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY, COMMENT) VALUES (?, ?, ?, strftime("%Y-%m-%d", ?), ?)',
-                            [user_id, allocation_id, activity_id, day, comment],
-                            function (err) {
+
+                        that.db.each('SELECT LEAVE_DATE from USERS where ID = ?', [user_id], function (err, row) {
+                                if (!err) {
+                                    leaveDate = row.LEAVE_DATE;
+                                }
+                            }, function (err) {
                                 if (!cb) {
                                     return;
                                 }
                                 if (err) {
                                     cb(err, null);
-                                    return
+                                    return;
                                 }
-                                cb(null, { id: this.lastID });
+                                if (leaveDate && moment(leaveDate).startOf('day') < moment(day).startOf('day')) {
+                                    cb("Vous ne pouvez pas rajouter d'activités à quelqu'un déjà parti.", null);
+                                    return;
+                                }
+                                that.db.run('INSERT INTO TASKS(USER_ID, TIME_ALLOCATION_ID, ACTIVITY_ID, DAY, COMMENT) VALUES (?, ?, ?, strftime("%Y-%m-%d", ?), ?)',
+                                    [user_id, allocation_id, activity_id, day, comment],
+                                    function (err) {
+                                        if (!cb) {
+                                            return;
+                                        }
+                                        if (err) {
+                                            cb(err, null);
+                                            return
+                                        }
+                                        cb(null, { id: this.lastID });
+                                    });
                             });
                     });
             });
@@ -261,9 +279,9 @@ var dbWrapper = {
     },
     getUsers: function (cb) {
         var results = [];
-        this.db.each('SELECT ID, NAME FROM USERS where LEAVE_DATE is NULL order by NAME', function (err, row) {
+        this.db.each('SELECT ID, NAME, LEAVE_DATE FROM USERS order by NAME', function (err, row) {
             if (!err) {
-                results.push({ id: row.ID, name: row.NAME });
+                results.push({ id: row.ID, name: row.NAME, leave_date: row.LEAVE_DATE });
             }
         }, function (err, size) {
             cb(err, results);

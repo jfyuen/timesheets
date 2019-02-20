@@ -115,6 +115,10 @@ function fetcher(url, cb) {
         });
 };
 
+function canUserBeDisplayed(user, d) {
+    return !user.leave_date || moment(user.leave_date) >= d;
+}
+
 function filterSubMenu(id, sublist, name) {
     if (id == -1) {
         return [];
@@ -214,15 +218,29 @@ var Timetable = createReactClass({
     getCategoryProjects: function (categoryId) {
         return filterSubMenu(categoryId, this.state.projects, 'category_id');
     },
+    filterUsers: function(today) {
+        var users = [];
+        if (this.state.users.list) {
+            var current_date = today.startOf('day');
+            for (let user of this.state.users.list) {
+                if (canUserBeDisplayed(user, current_date)) {
+                    users.push(user);
+                }
+            }
+        }
+        return users;
+    },
     render: function () {
         var dailyTasks = this.dailyTasks();
         var that = this;
         var categoryProjects = this.getCategoryProjects(this.state.category_id);
         var projectActivities = this.getProjectActivities(this.state.project_id);
+        var users = this.filterUsers(this.state.today);
+
         return (
             <div>
                 <form className='task-table'>
-                    <SelectList values={this.state.users.list} label='Trigramme' cssclass='user' changeFunc={this.changeUser} selected={this.state.user_id} />
+                    <SelectList values={users} label='Trigramme' cssclass='user' changeFunc={this.changeUser} selected={this.state.user_id} />
                     <JNTDatePicker date={this.state.today} previousDay={this.previousDay} nextDay={this.nextDay} jnts={this.state.jnts} changeDate={this.changeDate} />
                     <SelectList values={this.state.categories.list} label='Catégorie' cssclass='category-select' id='category' changeFunc={this.changeCategory} selected={this.state.category_id} />
                     <SelectList values={categoryProjects} label='Projet' cssclass='project-select' id='project' changeFunc={this.changeProject} selected={this.state.project_id} />
@@ -396,7 +414,16 @@ var Timetable = createReactClass({
         });
     },
     changeDate: function (d) {
-        this.setState({ today: moment(d), errorMsg: '' });
+        d = moment(d);
+        var user_id = this.state.user_id;
+        if (this.state.user_id && (this.state.user_id in this.state.users.dict)) {
+            var current_date = d.startOf('day');
+            var user = this.state.users.dict[this.state.user_id];
+            if (!canUserBeDisplayed(user, current_date)) {
+                user_id = -1;
+            }
+        } 
+        this.setState({ today: d, errorMsg: '', user_id: user_id });
     },
     addTaskAndNextDay: function (event) {
         event.preventDefault();
