@@ -8,6 +8,7 @@ router.route('/')
     .get(function (req, res) {
         db.getActivities(function (err, results) {
             if (err) {
+                console.error("cannot get activities:", err);
                 res.status(500).json(err);
             } else {
                 res.status(200).json(results);

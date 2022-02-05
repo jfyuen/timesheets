@@ -13,6 +13,7 @@ router.route('/:ids')
         }
         db.deleteTasks(task_ids, function (err, results) {
             if (err) {
+                console.error("cannot delete tasks", err);
                 res.status(500).json(err);
             } else {
                 res.status(200).json('ok');
@@ -24,6 +25,7 @@ router.route('/')
     .get(function (req, res) {
         db.getAllTasks(function (err, results) {
             if (err) {
+                console.error("cannot download tasks:", err);
                 res.status(500).json(err);
             } else {
                 const headers = {};

@@ -52,9 +52,9 @@ const dbWrapper = {
 
 
             const projects = [
-                { id: 0, name: 'Project 1' , category_id: 0},
+                { id: 0, name: 'Project 1 (aa baba)' , category_id: 0},
                 { id: 1, name: 'Project 2', category_id: 0 },
-                { id: 2, name: 'Project 3', category_id: 1 }
+                { id: 2, name: 'Project 3(eee)))', category_id: 1 }
             ];
 
             this.db.run('CREATE TABLE PROJECTS (ID INTEGER PRIMARY KEY, NAME TEXT NOT NULL, CATEGORY_ID INTEGER NOT NULL,\

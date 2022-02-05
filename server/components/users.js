@@ -24,6 +24,7 @@ router.route('/:id/tasks')
             day = req.body.date;
         db.addTask(id, activity_id, allocation_id, day, comment, function (err, results) {
             if (err) {
+                console.error("cannot add user task:", err);
                 res.status(500).json(err);
             } else {
                 res.status(200).json(results);
@@ -34,6 +35,7 @@ router.route('/:id/tasks')
         const id = parseInt(req.params['id']);
         db.getUserTasks(id, function (err, results) {
             if (err) {
+                console.error("cannot get user task:", err);
                 res.status(500).json(err);
             } else {
                 res.status(200).json(results);

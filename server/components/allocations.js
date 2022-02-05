@@ -8,6 +8,7 @@ router.route('/')
     .get(function (req, res) {
         db.getAllocations(function (err, results) {
             if (err) {
+                console.error("cannot get allocations:", err);
                 res.status(500).json(err);
             } else {
                 res.status(200).json(results);

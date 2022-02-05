@@ -8,6 +8,7 @@ router.route('/')
     .get(function (req, res) {
         db.getCategories(function (err, results) {
             if (err) {
+                console.error("cannot get categories:", err);
                 res.status(500).json(err);
             } else {
                 res.status(200).json(results);

@@ -8,6 +8,7 @@ router.route('/')
     .get(function (req, res) {
         db.getNonWorkingDays(function (err, results) {
             if (err) {
+                console.error("cannot get jnts:", err);
                 res.status(500).json(err);
             } else {
                 res.status(200).json(results);
