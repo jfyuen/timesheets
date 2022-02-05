@@ -1,9 +1,7 @@
-"use strict";
-
 const express = require("express");
 
-var router = express.Router();
-var db = require('./db');
+const router = express.Router();
+const db = require('./db');
 
 router.route('/')
     .post()
@@ -19,8 +17,8 @@ router.route('/')
 
 router.route('/:id/tasks')
     .post(function (req, res) {
-        var id = parseInt(req.params['id']);
-        var activity_id = req.body.activity_id,
+        const id = parseInt(req.params['id']);
+        const activity_id = req.body.activity_id,
             allocation_id = req.body.allocation_id,
             comment = req.body.comment,
             day = req.body.date;
@@ -33,7 +31,7 @@ router.route('/:id/tasks')
         });
     })
     .get(function (req, res) {
-        var id = parseInt(req.params['id']);
+        const id = parseInt(req.params['id']);
         db.getUserTasks(id, function (err, results) {
             if (err) {
                 res.status(500).json(err);

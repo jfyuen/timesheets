@@ -17,6 +17,7 @@
 .task-table {
     display: table;
     float: left;
+    width: 450px;
 }
 
 textarea {

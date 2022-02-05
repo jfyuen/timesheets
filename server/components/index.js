@@ -1,7 +1,4 @@
-"use strict";
-
-const express = require("express");
-var categories = require('./categories'),
+const categories = require('./categories'),
     projects = require('./projects'),
     activities = require('./activities'),
     allocations = require('./allocations'),

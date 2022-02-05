@@ -1,9 +1,9 @@
 # Timesheets
 
-A small app to track user time by projects and activities.  
+A small app to track user time by projects and activities.
 Hopefully to be used weekly.
 
-Work is hierarchied by categories, projects and then tasks. If a project has only one task, it is autoselected and the task field is hidden. 
+Work is hierarchied by categories, projects and then tasks. If a project has only one task, it is autoselected and the task field is hidden.
 Therefore to restrict the work to a category and a project, a single tasks must be added in the database with the same name as the project.
 
 A yearly calendar view allows the user to check he misses some time period.
@@ -16,15 +16,20 @@ If no database path (`${DB_PATH}`) is set, it will create one in the app root di
 ### Production
 
 ```bash
-$ npm start
+$ npm run main
 ```
 
 The app starts on port 8080 by default.
 
 ### Development
 
+Update `REACT_APP_BACKEND_URL` if neeeded.
 ```bash
-$ npm run dev
+$ REACT_APP_BACKEND_URL=http://localhost:8081 npm start
+```
+and node
+```
+$ node server/index.js
 ```
 The app starts on port 8081 by default.
 
@@ -41,7 +46,7 @@ $ docker run -p 8080:8080 -v ${DB_PATH}:/data -d ${USER}/timesheets
 ## Administration
 
 For any operation below, it is needed to modify the sqlite database.
-To connect to the database: `sqlite3 ${DB_PATH}`. After a database update, it is best to restart the docker.  
+To connect to the database: `sqlite3 ${DB_PATH}`. After a database update, it is best to restart the docker.
 For every command below, replace variables in `${...}` with what is to be added.
 
 ### Add a new user

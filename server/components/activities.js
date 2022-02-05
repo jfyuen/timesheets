@@ -1,9 +1,7 @@
-"use strict";
-
 const express = require("express");
 
-var router = express.Router();
-var db = require('./db');
+const router = express.Router();
+const db = require('./db');
 
 router.route('/')
     .post()

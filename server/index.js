@@ -4,12 +4,29 @@
 const path = require('path'),
     express = require('express'),
     config = require('./config'),
-    db = require('./components/db');
+    db = require('./components/db'),
+    cors = require('cors');
+const app = express();
 
-var app = express();
-var bodyParser = require('body-parser');
+var allowedOrigins = ['http://localhost:3000',
+                      'http://localhost:8081'];
+app.use(cors({
+    origin: function(origin, callback){    // allow requests with no origin
+        // (like mobile apps or curl requests)
+        if(!origin) {
+            return callback(null, true);
+            }
+        if(allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not ' +
+                    'allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    }
+}));
+const bodyParser = require('body-parser');
 
-app.use(express.static(path.join(config.root, 'static')));
+app.use(express.static(path.join(config.root, 'build')));
 app.use(bodyParser.json());       // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
     extended: true
