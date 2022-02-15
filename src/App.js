@@ -464,7 +464,11 @@ class App extends React.Component {
     changeProject(project_id) {
         const projectId = parseInt(project_id);
         const activities = this.getProjectActivities(projectId);
-        if (activities.length === 1) {
+        if (activities.length === 0) {
+            const projects = this.getCategoryProjects(this.state.category_id);
+            const project = projects.find(p => p.id === projectId);
+            this.setState({ errorMsg: `Pas d'activité pour le projet "${project.name}" en base, veuillez en ajouter au moins une.` });
+        } else if (activities.length === 1) {
             this.setState({ project_id: projectId, activity_id: activities[0].id });
         } else {
             this.setState({ project_id: projectId, activity_id: -1 });
