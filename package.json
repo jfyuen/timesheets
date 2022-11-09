@@ -8,7 +8,7 @@
     "@testing-library/user-event": "^13.5.0",
     "cors": "^2.8.5",
     "express-csv": "^0.6.0",
-    "moment": "^2.29.2",
+    "moment": "^2.29.4",
     "react": "^17.0.2",
     "react-datepicker": "^4.6.0",
     "react-dom": "^17.0.2",
